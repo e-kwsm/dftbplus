@@ -12,6 +12,7 @@ Helper routines for finite difference scripts
 
 import numpy as np
 import numpy.linalg as la
+import os.path
 import shutil
 import tempfile
 
@@ -60,22 +61,21 @@ def readgen(fname):
 def writegen(fname, data):
     """Writes the geometry as gen file."""
 
-    fp = open(fname, "w")
-    specienames, species, coords, origin, latvecs = data
-    fp.write("%5d %s\n" % (len(coords), latvecs is None and "C" or "S"))
-    fp.write(("%2s "*len(specienames) + "\n") % tuple(specienames))
-    coords = coords * BOHR__AA
-    for ii in range(len(coords)):
-        fp.write("%5d %5d %23.15E %23.15E %23.15E\n"
-                 % (ii + 1, species[ii] + 1, coords[ii, 0], coords[ii, 1],
-                    coords[ii, 2]))
-    if latvecs is not None:
-        origin = origin * BOHR__AA
-        latvecs = latvecs * BOHR__AA
-        fp.write("%23.15E %23.15E %23.15E\n" % tuple(origin))
-        for ii in range(3):
-            fp.write("%23.15E %23.15E %23.15E\n" % tuple(latvecs[ii]))
-    fp.close()
+    with open(fname, "w") as fp:
+        specienames, species, coords, origin, latvecs = data
+        fp.write("%5d %s\n" % (len(coords), latvecs is None and "C" or "S"))
+        fp.write(("%2s "*len(specienames) + "\n") % tuple(specienames))
+        coords = coords * BOHR__AA
+        for ii in range(len(coords)):
+            fp.write("%5d %5d %23.15E %23.15E %23.15E\n"
+                     % (ii + 1, species[ii] + 1, coords[ii, 0], coords[ii, 1],
+                        coords[ii, 2]))
+        if latvecs is not None:
+            origin = origin * BOHR__AA
+            latvecs = latvecs * BOHR__AA
+            fp.write("%23.15E %23.15E %23.15E\n" % tuple(origin))
+            for ii in range(3):
+                fp.write("%23.15E %23.15E %23.15E\n" % tuple(latvecs[ii]))
 
 
 def cart2frac(latvecs, coords):
@@ -123,9 +123,4 @@ def exists(filename):
     """
     Check for existence of named file
     """
-    try:
-        f = open(filename)
-        f.close()
-        return True
-    except OSError:
-        return False
+    return os.path.exists(filename)

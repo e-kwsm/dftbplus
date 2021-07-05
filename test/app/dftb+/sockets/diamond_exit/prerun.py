@@ -16,16 +16,14 @@ def connect():
     serversocket.listen(1)
     port = serversocket.getsockname()[1]
     # write file for dftb_in.hsd to include:
-    file = open("port.hsd","w")
-    file.write('# The externally set port number for this run\n')
-    file.write("+Driver = +Socket {\n")
-    file.write("  !Port = %i\n" % port)
-    file.write("}\n")
-    file.close()
+    with open("port.hsd", "w") as file:
+        file.write('# The externally set port number for this run\n')
+        file.write("+Driver = +Socket {\n")
+        file.write("  !Port = %i\n" % port)
+        file.write("}\n")
     # plain text file with the same information
-    file = open("port.txt","w")
-    file.write("%i" % port)
-    file.close()
+    with open("port.txt", "w") as file:
+        file.write("%i" % port)
     connection, address = serversocket.accept()
     return connection
 

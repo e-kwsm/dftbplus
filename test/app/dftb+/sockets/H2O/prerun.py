@@ -24,16 +24,14 @@ def connect():
             raise
 
     # write file for dftb_in.hsd to include:
-    file = open("file.hsd","w")
-    file.write('# The externally set filename for this run\n')
-    file.write("+Driver = +Socket {\n")
-    file.write('  !File = "dftb%i"\n' % pid)
-    file.write("}\n")
-    file.close()
+    with open("file.hsd", "w") as file:
+        file.write('# The externally set filename for this run\n')
+        file.write("+Driver = +Socket {\n")
+        file.write('  !File = "dftb%i"\n' % pid)
+        file.write("}\n")
     # plain text file with the same information
-    file = open("file.txt","w")
-    file.write("/tmp/ipi_dftb%i" % pid)
-    file.close()
+    with open("file.txt", "w") as file:
+        file.write("/tmp/ipi_dftb%i" % pid)
 
     serversocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     serversocket.bind(server_address)

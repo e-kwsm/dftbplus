@@ -70,10 +70,9 @@ def xyz2gen(args):
         raise ScriptError('You must enter a valid path to the input file.')
     geo = xyz.geometry
     if args.lattfile:
-        fp = open(args.lattfile, "r")
-        tmp = np.fromfile(fp, count=9, dtype=float, sep=" ")
+        with open(args.lattfile, "r") as fp:
+            tmp = np.fromfile(fp, count=9, dtype=float, sep=" ")
         latvecs = tmp.reshape((3, 3))
-        fp.close()
         geo.setlattice(latvecs)
     gen = Gen(geo, fractional=args.fractional)
 

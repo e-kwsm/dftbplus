@@ -74,27 +74,25 @@ def parse_command_line():
 
 def create_input(charges=None, scctol=None, maxscciter=None):
     shutil.copy(DFTB_IN_TEMPLATE, DFTB_IN)
-    fp = open(DFTB_IN, "a+")
-    fp.write(DFTB_BEGIN)
-    if charges is not None:
-        #totalcharge = np.sum(charges)
-        totalcharge = 0.0
-        charges_str = "\n".join(
-            [ "{:23.15E}".format(charge) for charge in charges ])
-        fp.write(DFTB_CHARGES.format(totalcharge=totalcharge,
-                                     allatomcharges=charges_str))
-    if scctol is not None:
-        fp.write(DFTB_SCCTOL.format(scctol=scctol))
-    if maxscciter is not None:
-        fp.write(DFTB_MAXSCCITER.format(maxscciter=maxscciter))
-    fp.write(DFTB_END)
-    fp.close()
+    with open(DFTB_IN, "a+") as fp:
+        fp.write(DFTB_BEGIN)
+        if charges is not None:
+            #totalcharge = np.sum(charges)
+            totalcharge = 0.0
+            charges_str = "\n".join(
+                [ "{:23.15E}".format(charge) for charge in charges ])
+            fp.write(DFTB_CHARGES.format(totalcharge=totalcharge,
+                                         allatomcharges=charges_str))
+        if scctol is not None:
+            fp.write(DFTB_SCCTOL.format(scctol=scctol))
+        if maxscciter is not None:
+            fp.write(DFTB_MAXSCCITER.format(maxscciter=maxscciter))
+        fp.write(DFTB_END)
 
 
 def get_output_charges():
-    fp = open(RESULTS_TAG, "r")
-    txt = fp.read()
-    fp.close()
+    with open(RESULTS_TAG, "r") as fp:
+        txt = fp.read()
     match = ATOMIC_CHARGES_PATTERN.search(txt)
     values = match.group("values")
     charges = np.array(values.split(), dtype=float)
@@ -106,12 +104,11 @@ def do_calculation(binary):
 
 
 def write_inverse_jacobian_kernel(invjac):
-    fp = open(INVERSE_JACOBIAN_FNAME, "w")
-    for row in invjac:
-        for elem in row:
-            fp.write("{:25.13E}".format(elem))
-        fp.write("\n")
-    fp.close()
+    with open(INVERSE_JACOBIAN_FNAME, "w") as fp:
+        for row in invjac:
+            for elem in row:
+                fp.write("{:25.13E}".format(elem))
+            fp.write("\n")
     print("*** Negative inverse Jacobian written to '{}'".format(
         INVERSE_JACOBIAN_FNAME))
 

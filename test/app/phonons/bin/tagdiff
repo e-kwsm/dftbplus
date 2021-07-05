@@ -361,17 +361,15 @@ def main():
         if options.verbose:
             print("# Reading config file `%s'" % confFile)
         try:
-            f = zOpen(confFile, "r")
-            configEntries += [ ce for ce in ConfigParser(f).entries ]
+            with zOpen(confFile, "r") as f:
+                configEntries += [ ce for ce in ConfigParser(f).entries ]
         except InvalidEntry as ee:
             printError("Invalid entry (%s) in file '%s' between lines %d and %d"
                                  % (ee.msg, confFile, ee.start, ee.end))
-            f.close()
             return EXIT_ERROR
         except IOError:
             printError("Input/output error for file '%s'" % (confFile,))
             return EXIT_ERROR
-        f.close()
 
     #
     # Read and parse files
@@ -379,33 +377,28 @@ def main():
     if options.verbose:
         print("# Reading old tagged file `%s'" % oldFile)
     try:
-        f = zOpen(oldFile, "r")
-        old = TaggedCollection(ResultParser(f).entries)
+        with zOpen(oldFile, "r") as f:
+            old = TaggedCollection(ResultParser(f).entries)
     except InvalidEntry as ee:
         printError("Invalid entry (%s) in file '%s' between lines %d and %d"
                              % (ee.msg, oldFile, ee.start, ee.end))
-        f.close()
         return EXIT_ERROR
     except IOError:
         printError("Input/output error for file '%s'" % (oldFile,))
         return EXIT_ERROR
-    f.close()
 
     if options.verbose:
         print("# Reading new tagged file `%s'" % newFile)
     try:
-        f = zOpen(newFile, "r")
-        new = TaggedCollection(ResultParser(f).entries)
+        with zOpen(newFile, "r") as f:
+            new = TaggedCollection(ResultParser(f).entries)
     except InvalidEntry as ee:
         printError("Invalid entry (%s) in file '%s' between lines %d and %d"
                              % (ee.msg, newFile, ee.start, ee.end))
-        f.close()
         return EXIT_ERROR
     except IOError:
         printError("Input/output error for file '%s'" % (newFile,))
         return EXIT_ERROR
-    f.close()
-
 
     #
     # Compare entries

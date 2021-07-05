@@ -56,9 +56,8 @@ class BandOut:
         Args:
             fobj: File like object or string with file name.
         """
-        fp = openfile(fobj)
-        txt = fp.read()
-        fp.close()
+        with openfile(fobj) as fp:
+            txt = fp.read()
         ispins = set()
         kweights = []
         eigvalarrays = []

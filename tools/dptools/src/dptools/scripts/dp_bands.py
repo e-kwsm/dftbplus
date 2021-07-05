@@ -98,10 +98,9 @@ def dp_bands(args):
         formstr = " ".join(tmp) + "\n"
 
     for iout, data in enumerate(plotvals):
-        fp = open(fnames[iout], "w")
-        for ik, kdata in enumerate(data):
-            if args.enum:
-                fp.write(formstr.format(ik + 1, *kdata))
-            else:
-                fp.write(formstr.format(*kdata))
-        fp.close()
+        with open(fnames[iout], "w") as fp:
+            for ik, kdata in enumerate(data):
+                if args.enum:
+                    fp.write(formstr.format(ik + 1, *kdata))
+                else:
+                    fp.write(formstr.format(*kdata))

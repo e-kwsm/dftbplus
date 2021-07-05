@@ -56,9 +56,8 @@ class Cif:
                 CIF-format.
 
         '''
-        fp = openfile(fobj, "r")
-        lines = fp.readlines()
-        fp.close()
+        with openfile(fobj, "r") as fp:
+            lines = fp.readlines()
         celllengths = np.empty(3, dtype=float)
         cellangles = np.empty(3, dtype=float)
         for jj in range(3):
@@ -92,21 +91,20 @@ class Cif:
             fobj: File name or file object where geometry should be written.
         '''
         geo = self.geometry
-        fp = openfile(fobj, "w")
-        fp.write("data_global\n")
-        for name, value in zip(["a", "b", "c"], self.celllengths):
-            fp.write("_cell_length_{0:s} {1:.10f}\n".format(name, value))
-        # cell angles are needed in degrees
-        for name, value in zip(["alpha", "beta", "gamma"],
-                               self.cellangles * 180.0 / np.pi):
-            fp.write("_cell_angle_{0:s} {1:.10f}\n".format(name, value))
-        fp.write("_symmetry_space_group_name_H-M 'P 1'\n")
-        fp.write("loop_\n_atom_site_label\n_atom_site_fract_x\n"
-                 "_atom_site_fract_y\n_atom_site_fract_z\n")
-        for ii in range(geo.natom):
-            fp.write("{0:3s} {1:.10f} {2:.10f} {3:.10f}\n".format(
-                geo.specienames[geo.indexes[ii]], *geo.relcoords[ii]))
-        fp.close()
+        with openfile(fobj, "w") as fp:
+            fp.write("data_global\n")
+            for name, value in zip(["a", "b", "c"], self.celllengths):
+                fp.write("_cell_length_{0:s} {1:.10f}\n".format(name, value))
+            # cell angles are needed in degrees
+            for name, value in zip(["alpha", "beta", "gamma"],
+                                   self.cellangles * 180.0 / np.pi):
+                fp.write("_cell_angle_{0:s} {1:.10f}\n".format(name, value))
+            fp.write("_symmetry_space_group_name_H-M 'P 1'\n")
+            fp.write("loop_\n_atom_site_label\n_atom_site_fract_x\n"
+                     "_atom_site_fract_y\n_atom_site_fract_z\n")
+            for ii in range(geo.natom):
+                fp.write("{0:3s} {1:.10f} {2:.10f} {3:.10f}\n".format(
+                    geo.specienames[geo.indexes[ii]], *geo.relcoords[ii]))
 
     def equals(self, other, abstolerance=_ABSTOLERANCE, reltolerance=_RELTOLERANCE):
         '''Checks whether object equals to an other one.

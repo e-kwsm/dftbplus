@@ -104,9 +104,8 @@ def calculate_elastic(binary, disp, coords, latvecs, specienames, species,
             if (chargeRestart):
                 shutil.copy2 (chargeRestart.name, CHARGES_FILE)
             subprocess.call([binary,])
-            fp = open("autotest.tag", "r")
-            txt = fp.read()
-            fp.close()
+            with open("autotest.tag", "r") as fp:
+                txt = fp.read()
             match = STRESS_PATTERN.search(txt)
             if match:
                 stress[0,kk] = float(match.group("value11"))

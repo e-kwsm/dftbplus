@@ -83,9 +83,8 @@ def getCubeRepr(fname):
   """Reads in a cube file with a given name"""
 
   try:
-    fp = open(fname, "r")
-    lines = fp.read().split("\n")
-    fp.close()
+    with open(fname, "r") as fp:
+      lines = fp.read().split("\n")
   except IOError as ex:
     error("Could not open file '%s'\n%s" % (fname, ex))
   cc = cube()

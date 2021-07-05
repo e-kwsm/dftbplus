@@ -45,9 +45,8 @@ class Xyz:
                 XYZ-format.
 
         """
-        fp = openfile(fobj, "r")
-        lines = fp.readlines()
-        fp.close()
+        with openfile(fobj, "r") as fp:
+            lines = fp.readlines()
         words = lines[0].split()
         natom = int(words[0])
         comment = lines[1].strip()
@@ -76,14 +75,13 @@ class Xyz:
         Args:
             fobj: File name or file object where geometry should be written.
         """
-        fp = openfile(fobj, "w")
         geo = self.geometry
-        fp.write("{0:d}\n".format(geo.natom))
-        fp.write(self.comment + "\n")
-        for ii in range(geo.natom):
-            fp.write("{0:3s} {1:18.10E} {2:18.10E} {3:18.10E}\n".format(
-                geo.specienames[geo.indexes[ii]], *geo.coords[ii]))
-        fp.close()
+        with openfile(fobj, "w") as fp:
+            fp.write("{0:d}\n".format(geo.natom))
+            fp.write(self.comment + "\n")
+            for ii in range(geo.natom):
+                fp.write("{0:3s} {1:18.10E} {2:18.10E} {3:18.10E}\n".format(
+                    geo.specienames[geo.indexes[ii]], *geo.coords[ii]))
 
     def equals(self, other, tolerance=_TOLERANCE, check_comment=False):
         '''Checks whether object equals to an other one.

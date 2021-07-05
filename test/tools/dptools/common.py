@@ -74,9 +74,8 @@ def get_temporary_filename(directory):
     Args:
         directory: Path where the temporary file is created
     '''
-    temp_file = tempfile.NamedTemporaryFile(dir=directory)
-    tempname = temp_file.name
-    temp_file.close()
+    with tempfile.NamedTemporaryFile(dir=directory) as temp_file:
+        tempname = temp_file.name
     return tempname
 
 

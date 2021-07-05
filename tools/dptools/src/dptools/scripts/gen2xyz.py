@@ -80,7 +80,6 @@ def gen2xyz(args):
     xyz.tofile(outfile)
 
     if gen.geometry.periodic and args.lattfile:
-        fp = open(args.lattfile, "w")
-        for vec in gen.geometry.latvecs:
-            fp.write("{0:18.10E} {1:18.10E} {2:18.10E}\n".format(*vec))
-        fp.close()
+        with open(args.lattfile, "w") as fp:
+            for vec in gen.geometry.latvecs:
+                fp.write("{0:18.10E} {1:18.10E} {2:18.10E}\n".format(*vec))

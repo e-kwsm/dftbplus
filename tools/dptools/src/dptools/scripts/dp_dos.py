@@ -221,17 +221,16 @@ def dp_dos(args, broadening, sigma, sigmarange, infile, outfile):
                 yvals[ispin, ilower:iupper+1] += (
                     (prefac * occ) * broadening_function(dx))
     # Write resulting DOS
-    fp = open(outfile, "w")
-    if bandout.nspin == 1:
-        for xx, yy in zip(xvals, yvals[0]):
-            fp.write("{0:18.10E} {1:18.10E}\n".format(xx, yy))
-    else:
-        ytotal = np.sum(yvals, axis=0)
-        formstr0 = "{0:18.10E} "
-        tmp = ["{" + "{0:d}".format(ii) + ":18.10E}" for ii in
-               range(1, bandout.nspin + 2)]
-        formstr = formstr0 + " ".join(tmp) + "\n"
-        nvals = len(xvals)
-        for ii in range(nvals):
-            fp.write(formstr.format(xvals[ii], ytotal[ii], *yvals[:, ii]))
-    fp.close()
+    with open(outfile, "w") as fp:
+        if bandout.nspin == 1:
+            for xx, yy in zip(xvals, yvals[0]):
+                fp.write("{0:18.10E} {1:18.10E}\n".format(xx, yy))
+        else:
+            ytotal = np.sum(yvals, axis=0)
+            formstr0 = "{0:18.10E} "
+            tmp = ["{" + "{0:d}".format(ii) + ":18.10E}" for ii in
+                   range(1, bandout.nspin + 2)]
+            formstr = formstr0 + " ".join(tmp) + "\n"
+            nvals = len(xvals)
+            for ii in range(nvals):
+                fp.write(formstr.format(xvals[ii], ytotal[ii], *yvals[:, ii]))

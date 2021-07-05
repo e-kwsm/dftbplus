@@ -132,15 +132,13 @@ def _replace_in_registered_files(rootdir, version, shortversion):
     for fname, regexp, repl in _FILES_AND_PATTERNS:
         fname = os.path.join(rootdir, fname)
         print("Replacments in '{}': ".format(fname), end='')
-        fp = open(fname, 'r')
-        txt = fp.read()
-        fp.close()
+        with open(fname, 'r') as fp:
+            txt = fp.read()
         replacement = repl.format(version=version, shortversion=shortversion)
         newtxt, nsub = re.subn(regexp, replacement, txt, flags=re.MULTILINE)
         print(nsub)
-        fp = open(fname, 'w')
-        fp.write(newtxt)
-        fp.close()
+        with open(fname, 'w') as fp:
+            fp.write(newtxt)
 
 
 def _replace_in_changelog(rootdir, version):
@@ -148,17 +146,15 @@ def _replace_in_changelog(rootdir, version):
 
     fname = os.path.join(rootdir, 'CHANGELOG.rst')
     print("Replacments in '{}': ".format(fname), end='')
-    fp = open(fname, 'r')
-    txt = fp.read()
-    fp.close()
+    with open(fname, 'r') as fp:
+        txt = fp.read()
     decoration = '=' * len(version)
     newtxt, nsub = re.subn(
         r'^Unreleased\s*\n=+', version + '\n' + decoration, txt,
         count=1, flags=re.MULTILINE)
     print(nsub)
-    fp = open(fname, 'w')
-    fp.write(newtxt)
-    fp.close()
+    with open(fname, 'w') as fp:
+        fp.write(newtxt)
 
 
 def _warn_about_manual_changes():

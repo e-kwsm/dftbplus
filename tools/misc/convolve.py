@@ -73,15 +73,13 @@ b = - 0.5 / (sigma * sigma)
 
 states = {}
 
-fp = open(infile, "r")
-eigenstates = numGrep(r"^ *([+-]?\d+\.\d+) +([+-]?\d+\.\d+e?-?\d*)",fp)
-fp.close()
+with open(infile, "r") as fp:
+    eigenstates = numGrep(r"^ *([+-]?\d+\.\d+) +([+-]?\d+\.\d+e?-?\d*)",fp)
 
 if norm:
-    fp = open(infile, "r")
-    nKPTS = numGrep(r"^ *KPT *(\d+) *(.*)",fp)
+    with open(infile, "r") as fp:
+        nKPTS = numGrep(r"^ *KPT *(\d+) *(.*)",fp)
     scale = 2.0 / size(nKPTS)
-    fp.close()
 else:
     scale = 1.0
 
@@ -102,13 +100,12 @@ for n in eigenstates:
         else:
             states[val] = C * exp(b * (x-m)*(x-m))
 
-fp = open(outfile, "w")
 lower = min(states.keys())
 upper = max(states.keys())
-for m in arange(lower,upper,gridResltn):
-    val = float(sGrid % (m))
-    if val in states:
-        fp.write("%s %s\n" % (m,states[val]))
-    else:
-        fp.write("%s 0.0\n" % (m))
-fp.close()
+with open(outfile, "w") as fp:
+    for m in arange(lower, upper, gridResltn):
+        val = float(sGrid % (m))
+        if val in states:
+            fp.write("%s %s\n" % (m, states[val]))
+        else:
+            fp.write("%s 0.0\n" % (m))

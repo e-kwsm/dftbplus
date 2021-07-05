@@ -133,9 +133,8 @@ def read_reference_results(autotest0, calcforces, calclatderivs, latvecs):
 
     forces0 = None
     latderivs0 = None
-    fp = open(autotest0, "r")
-    txt = fp.read()
-    fp.close()
+    with open(autotest0, "r") as fp:
+        txt = fp.read()
     if calcforces:
         match = FORCES_PATTERN.search(txt)
         if match:
@@ -185,9 +184,8 @@ def calculate_forces(binary, disp, coords, specienames, species, origin,
                 if (chargeRestart):
                     shutil.copy2 (chargeRestart.name, CHARGES_FILE)
                 subprocess.call([binary])
-                fp = open("autotest.tag", "r")
-                txt = fp.read()
-                fp.close()
+                with open("autotest.tag", "r") as fp:
+                    txt = fp.read()
                 match = ENERGY_PATTERN.search(txt)
                 print("iat: %2d, dir: %s, delta: %s" % (iat, cart[ii],delta[jj]))
                 if match:
@@ -219,9 +217,8 @@ def calculate_latderivs(binary, disp, coords, latvecs, specienames, species,
                 if (chargeRestart):
                     shutil.copy2 (chargeRestart.name, CHARGES_FILE)
                 subprocess.call([binary,])
-                fp = open("autotest.tag", "r")
-                txt = fp.read()
-                fp.close()
+                with open("autotest.tag", "r") as fp:
+                    txt = fp.read()
                 match = ENERGY_PATTERN.search(txt)
                 print("ii: %2d, jj: %2d, delta: %s" % (ii, jj, delta[kk]))
                 print("energy:", energy[kk])
