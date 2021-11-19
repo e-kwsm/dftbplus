@@ -125,7 +125,7 @@ module dftbp_io_hsdparser
   !> file name
   character(len=*), parameter :: attrFile = "file"
 
-  !> attribte name
+  !> attribute name
   character(len=*), parameter :: attrName = "name"
 
   !> modifier label

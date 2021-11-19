@@ -1650,7 +1650,7 @@ contains
     type(TReksCalc), allocatable :: reks ! never allocated
 
     ! if Forces are calculated, rhoPrim has already been calculated
-    ! check allways that calcEnergy is called AFTER getForces
+    ! check always that calcEnergy is called AFTER getForces
     if (.not. this%tForces) then
       rhoPrim(:,:) = 0.0_dp
       do iKS = 1, this%parallelKS%nLocalKS

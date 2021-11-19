@@ -30,7 +30,7 @@ function(dftbp_preprocess preproc preprocopts oldext newext oldfiles newfiles)
 
   set(_newfiles)
   foreach(oldfile IN LISTS oldfiles)
-    # Start with an absolulte path, so that the correct relative path is calculated thereafter
+    # Start with an absolute path, so that the correct relative path is calculated thereafter
     get_filename_component(oldfile ${oldfile} ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
     file(RELATIVE_PATH oldfile ${CMAKE_CURRENT_SOURCE_DIR} ${oldfile})
     dftbp_replace_extension(${oldext} ${newext} ${oldfile} newfile)
@@ -380,7 +380,7 @@ function(dftbp_ensure_compiler_def language)
 
   if(NOT DEFINED CMAKE_${language}_COMPILER)
     message(FATAL_ERROR "Undefined ${language} compiler. The automatic detection of compilers, \
-flags and libraries is disabled. You must provide configuration parameters explicitely (e.g. in a \
+flags and libraries is disabled. You must provide configuration parameters explicitly (e.g. in a \
 toolchain file). See the INSTALL.rst file for detailed instructions.")
   endif()
 
@@ -685,13 +685,13 @@ function (dftbp_create_lcov_targets lcov genhtml lcov_output_dir lcov_base_dir l
 endfunction()
 
 
-# Checks whether the current compiler fullfills minimal version requirements.
+# Checks whether the current compiler fulfills minimal version requirements.
 #
 #
 # Arguments:
 #   lang [in]: Language for which the compiler should be checked (e.g. Fortran, C, CXX)
 #   compiler_versions [in]: List with alternating compiler ids and minimal version numbers, e.g.
-#       "Intel;19.0;GNU;9.0". If the compiler is amoung the listed ones and its version number is
+#       "Intel;19.0;GNU;9.0". If the compiler is among the listed ones and its version number is
 #       less than the specified one, a fatal error message will be issued. Otherwise the function
 #       returns silently.
 #

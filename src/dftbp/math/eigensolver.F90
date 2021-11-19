@@ -2214,7 +2214,7 @@ contains
           & -1, info)
     end if
     if (info/=0) then
-      @:ERROR_HANDLING(err, -1, "Failue in ${VPREC}$geev to determine optimum workspace")
+      @:ERROR_HANDLING(err, -1, "Failure in ${VPREC}$geev to determine optimum workspace")
     endif
     int_idealwork=nint(idealwork(1))
     allocate(work(int_idealwork))

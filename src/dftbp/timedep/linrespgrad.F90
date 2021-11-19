@@ -172,7 +172,7 @@ contains
     integer, allocatable :: win(:), getIA(:,:), getIJ(:,:), getAB(:,:)
 
     !> array from pairs of single particles states to compound index - should replace with a more
-    !> compact data structure in the cases where there are oscilator windows
+    !> compact data structure in the cases where there are oscillator windows
     integer, allocatable :: iatrans(:,:,:)
 
     character, allocatable :: symmetries(:)
@@ -334,7 +334,7 @@ contains
     nxvv_max = maxval(nxvv_ud)
 
     if (this%nExc + 1 >= nxov) then
-      write(tmpStr,"(' Insufficent single particle excitations, ',I0,&
+      write(tmpStr,"(' Insufficient single particle excitations, ',I0,&
           & ', for required number of excited states ',I0)")nxov, this%nExc
       call error(tmpStr)
     end if
@@ -1113,7 +1113,7 @@ contains
     iterStrat = 1
     write(*,'(A)')
     write(*,'(A)') '>> Stratmann diagonalisation of response matrix'
-    write(*,'(3x,A,i6,A,i6)') 'Total dimension of A+B: ', nxov_rd, ' inital subspace: ',&
+    write(*,'(3x,A,i6,A,i6)') 'Total dimension of A+B: ', nxov_rd, ' initial subspace: ',&
         & subSpaceDim
     ! Memory available for subspace calcs
     memDim = min(subSpaceDim + 6 * nExc, nxov_rd)
@@ -1327,7 +1327,7 @@ contains
     !> spin polarisation?
     logical, intent(in) :: tSpin
 
-    !> dipole moments for single particle transtions
+    !> dipole moments for single particle transitions
     real(dp), intent(in) :: snglPartTransDip(:,:)
 
     !> Low lying eigenvalues of Casida eqn (Omega^2)
@@ -1342,10 +1342,10 @@ contains
     !> write transition dipole
     logical :: tTradip
 
-    !> flag wich if <-1 on entry is returned as the brightest state
+    !> flag which if <-1 on entry is returned as the brightest state
     integer, intent(inout) :: istat
 
-    !> Oscilator strengths of transitions
+    !> Oscillator strengths of transitions
     real(dp), intent(out) :: osz(:)
 
     !> resulting transition dipoles
@@ -2198,7 +2198,7 @@ contains
   !> Write out density matrix, full if rhoSqr is present
   subroutine writeDM(iLev, pc, rhoSqr)
 
-    !> Lable for excited state level
+    !> Label for excited state level
     integer, intent(in) :: iLev
 
     !> transition density matrix

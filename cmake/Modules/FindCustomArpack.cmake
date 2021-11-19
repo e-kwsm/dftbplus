@@ -72,7 +72,7 @@ else()
 
     else()
 
-      # Library explicitely set by the user, search for those libraries
+      # Library explicitly set by the user, search for those libraries
       find_custom_libraries("${ARPACK_LIBRARY}" "${ARPACK_LIBRARY_DIR}"
         "${CustomArpack_FIND_QUIETLY}" _libs)
       set(ARPACK_LIBRARY "${_libs}" CACHE STRING "List of ARPACK libraries to link" FORCE)

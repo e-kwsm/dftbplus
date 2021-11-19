@@ -208,7 +208,7 @@ contains
     type(TSplineRepInp), intent(inout) :: splinerepin
     !! Index of the first species in the repulsive (for messages)
     integer, intent(in), optional :: isp1
-    !! Index of the second species in the repulsive (for messsages)
+    !! Index of the second species in the repulsive (for messages)
     integer, intent(in), optional :: isp2
 
     integer :: iostat

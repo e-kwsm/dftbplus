@@ -474,7 +474,7 @@ Troubleshooting
   The OpenMPI version of ScaLAPACK on Ubuntu 20.4 LTS exports an incorrect CMake
   config file (as of October 2020), which refers to an non-existent
   library. Instead, set the library name with the ``SCALAPACK_LIBRARY`` variable
-  explicitely, e.g. ::
+  explicitly, e.g. ::
 
     cmake -DSCALAPACK_LIBRARY=scalapack-openmpi [...]
 

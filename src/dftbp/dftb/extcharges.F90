@@ -39,7 +39,7 @@ module dftbp_dftb_extcharges
     !> Shift vector
     real(dp), allocatable :: shift(:)
 
-    !> If charges should be blured
+    !> If charges should be blurred
     logical :: tBlur
 
     !> Blur width for the charges.

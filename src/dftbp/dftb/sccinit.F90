@@ -201,7 +201,7 @@ contains
     !> Full density matrix with on-diagonal adjustment
     real(dp), intent(inout), allocatable :: deltaRho(:)
 
-    !> Number of atoms in central region (atoms outside this will have charges suplied from
+    !> Number of atoms in central region (atoms outside this will have charges supplied from
     !> elsewhere)
     integer, intent(in) :: nAtInCentralRegion
 
@@ -540,7 +540,7 @@ contains
     !> Full density matrix with on-diagonal adjustment
     real(dp), intent(in), allocatable :: deltaRhoIn(:)
 
-    !> Number of atoms in central region (atoms outside this will have charges suplied from
+    !> Number of atoms in central region (atoms outside this will have charges supplied from
     !> elsewhere)
     integer, intent(in) :: nAtInCentralRegion
 

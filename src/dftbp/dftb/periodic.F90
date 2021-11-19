@@ -677,7 +677,7 @@ contains
   !> Returns the nr. of neighbours for a given atom.
   function getNrOfNeighbours(neigh, cutoff, iAtom) result(nNeighbour)
 
-    !> Intialised neihgborlist.
+    !> Initialised neihgborlist.
     type(TNeighbourList), intent(in) :: neigh
 
     !> Maximal neighbour distance to consider.

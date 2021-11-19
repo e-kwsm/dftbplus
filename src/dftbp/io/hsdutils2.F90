@@ -208,13 +208,13 @@ contains
   !> program stops with error.
   subroutine splitModifier(modifier, child, modifiers)
 
-    !> The list of modifers as a string.
+    !> The list of modifiers as a string.
     character(len=*), intent(in) :: modifier
 
     !>  The child which carries this modifier (for error messages)
     type(fnode), pointer :: child
 
-    !>  Array of the modifiers, occurring in modifer.
+    !>  Array of the modifiers, occurring in modifier.
     type(string), intent(inout) :: modifiers(:)
 
     integer :: nModif

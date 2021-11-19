@@ -80,7 +80,7 @@ contains
         tmpBlock(:nOrb,:nOrb) = tmpBlock(:nOrb,:nOrb) *&
             & (tmpME(:nOrb,:nOrb,1) + factor(iSpin)*tmpME(:nOrb,:nOrb,2))
 
-        ! rotational invariance corection for diagonal part
+        ! rotational invariance correction for diagonal part
         do iSh = 1, orb%nShell(iSp)
           degeneracy = real(2*orb%angShell(iSh, iSp) + 1, dp)
           qSumL = 0.0_dp

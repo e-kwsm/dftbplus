@@ -417,7 +417,7 @@ Driver = GeometryOptimization {
 \label{sec:dftbp.Convergence}
 
 Data group to provide the convergence thresholds for the geometry optimizations.
-To disable a convergence criterium a large value should be provided.
+To disable a convergence criterion a large value should be provided.
 
 \begin{ptable}
   \kw{Energy} & r &  & inf & \\
@@ -2043,7 +2043,7 @@ distribution:
 \subsubsection{SpinConstants}
 \label{sec:dftbp.SpinConstants}
 
-This environment suplies the atomic constants required for either spin polarised
+This environment supplies the atomic constants required for either spin polarised
 calculations or when evaluating properties which depend on spin interactions
 (triplet excitations for example).  In these cases, for each atomic species in
 the calculation the spin coupling constants for that atom must be specified.
@@ -2398,7 +2398,7 @@ significant.
 \subsubsection{$\boldsymbol\Delta$DFTB}
 The time-independent approach $\Delta$DFTB modifies the SCC loop to allow
 variational relaxation of the lowest singlet excited state of closed-shell
-singlet species.\cite{irle-JCTC-12-313} The KS spin orbitals are self-constently
+singlet species.\cite{irle-JCTC-12-313} The KS spin orbitals are self-consistently
 optimized under non-Aufbau orbital occupation constraints via promotion of an
 electron from the highest occupied molecular orbital (HOMO) of the ground state
 to lowest unoccupied molecular orbital (LUMO) at each SCC
@@ -3421,7 +3421,7 @@ as well as a self-consistent evaluation of the dispersion with \is{SelfConsisten
 For the electronegativity equilibration model the following parameters are available.
 For each species four parameters (\kw{Chi}, \kw{Gam}, \kw{Kcn}, and \kw{Rad})
 have to be supplied in a \is{Values\cb} method, since the model
-is instanciated inside the \is{DftD4\cb} method, \is{Defaults\cb} for all elements
+is instantiated inside the \is{DftD4\cb} method, \is{Defaults\cb} for all elements
 up to 86 can be supplied automatically.\cite{caldeweyher-jcp-150-154122}
 
 \begin{ptable}
@@ -3675,7 +3675,7 @@ approach.
 
 To use the generalized Born model in the SCC procedure use the
 \is{GeneralizedBorn\cb} method in the input to \kw{Solvation}.
-The non-polar solvent area model can be combinded with the GB model
+The non-polar solvent area model can be combined with the GB model
 enabling to additionally correct for hydrogen bonding, the resulting
 model is called GBSA.
 The parameters for the GBSA model are currently available at
@@ -5217,7 +5217,7 @@ section~\ref{sec:ppRPAout}.
 \label{sec:dftbp.ElectronDynamics}
 
 Calculate the real-time propagation of both the electronic state of the system
-and the nuclei within the Ehfenfest approximation in the presence of an optional
+and the nuclei within the Ehrenfest approximation in the presence of an optional
 external time-dependent perturbation, as described in Ref.~\cite{realtime1}.
 The real-time propagation is available with DFTB as well as xTB Hamiltonians.
 
@@ -6390,7 +6390,7 @@ time (in fs), net total charge, charge (atom 1), charge (atom 2), ...,
 charge (atom N)
 
 where N is the number of atoms, and the net total charge should always
-be zero (up to numerical presicion) for a neutral system.
+be zero (up to numerical precision) for a neutral system.
 
 \subsection{mu.dat/mux.dat/muy.dat/muz.dat}
 \index{mu.dat}

@@ -137,7 +137,7 @@ contains
     if (tPlotModes) then
       write(stdOut,*)'Plotting eigenmodes:'
       write(stdOut,*)ModesToPlot(:)
-      ! scale mode compoents on each atom by mass and then normalise total mode
+      ! scale mode components on each atom by mass and then normalise total mode
       do ii = 1, nModesToPlot
         iMode = ModesToPlot(ii)
         jCount = 0
@@ -152,7 +152,7 @@ contains
             & / sqrt(sum(dynMatrix(:,iMode)**2))
       end do
 
-     ! Create displacment vectors for every atom in every mode.
+     ! Create displacement vectors for every atom in every mode.
       allocate(displ(3, nAtom, nModesToPlot))
       displ(:,:,:) = 0.0_dp
       do iAt = 1, nAtom

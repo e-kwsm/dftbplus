@@ -522,7 +522,7 @@ contains
   #:endcall DEBUG_CODE
 
     if (nSpin == 4 .and. this%isSparse) then
-      call error("Sparse solver not currently avaible for two component complex hamiltonians")
+      call error("Sparse solver not currently available for two component complex hamiltonians")
     end if
 
     this%tCholeskyDecomposed = .false.
@@ -552,7 +552,7 @@ contains
     isPartSupported = version >= TVersion(2, 5)
 
     if (.not. isPartSupported) then
-      call error("Unsuported ELSI version for DFTB+ (requires release >= 2.5.0)")
+      call error("Unsupported ELSI version for DFTB+ (requires release >= 2.5.0)")
     else if (.not. isSupported) then
       call warning("ELSI version 2.5 is only partially supported due to changes in default solver&
           & behaviour for PEXSI at 2.6.0")

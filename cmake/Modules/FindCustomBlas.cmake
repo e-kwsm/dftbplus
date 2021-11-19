@@ -94,7 +94,7 @@ else()
 
     elseif(NOT "${BLAS_LIBRARY}" STREQUAL "NONE")
 
-      # BLAS explicitely set by the user, search for those libraries
+      # BLAS explicitly set by the user, search for those libraries
       find_custom_libraries("${BLAS_LIBRARY}" "${BLAS_LIBRARY_DIR}"
         "${CustomBlas_FIND_QUIETLY}" _libs)
       set(BLAS_LIBRARY "${_libs}" CACHE STRING "List of BLAS libraries to link" FORCE)

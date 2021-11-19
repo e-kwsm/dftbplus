@@ -425,7 +425,7 @@ contains
   !> Note: When using the linear XLBOMD form, charges should not be updated via updateCharges after
   !> the diagonalization, so that the shift vectors remain the ones built with the input
   !> charges. However, since for calculating energy/forces, the output charges are needed, they must
-  !> be passed explicitely here.
+  !> be passed explicitly here.
   subroutine getEnergyPerAtomXlbomd(this, qOut, q0, species, orb, energyPerAtom)
 
     !> Instance.

@@ -201,7 +201,7 @@ module phonons_libnegfint
 
     call set_params(negf,parms)
 
-    ! set indeces for projected DOS
+    ! set indices for projected DOS
     if (tundos%defined) then
       nldos = size(tundos%dosOrbitals)
       call init_ldos(negf, nldos)
@@ -218,7 +218,7 @@ module phonons_libnegfint
 
     integer, dimension(:), allocatable :: indx
     integer :: i, l
-    ! set indeces for projecter transmission
+    ! set indices for projecter transmission
     ! This assumes derivatives are ordered x,y,z
     ! That transport is along z
     ! That 2d structures are on x-z
@@ -348,7 +348,7 @@ module phonons_libnegfint
       atomst(nbl+1) = iatm2 + 1
     endif
 
-    ! For every contact finds the min-max atom indeces among
+    ! For every contact finds the min-max atom indices among
     ! the atoms in the central region interacting with contact
     if (transpar%defined .and. ncont.gt.0) then
 

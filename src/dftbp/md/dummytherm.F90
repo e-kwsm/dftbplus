@@ -35,7 +35,7 @@ module dftbp_md_dummytherm
     !> Random number generator.
     type(TRanlux), allocatable :: pRanlux
 
-    !> MD Framwork
+    !> MD Framework
     type(TMDCommon) :: pMDFrame
   end type TDummythermostat
 

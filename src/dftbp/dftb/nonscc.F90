@@ -221,7 +221,7 @@ contains
     !> The second atom in the diatomic block
     integer, intent(in) :: atomJ
 
-    !> Orbital informations
+    !> Orbital information
     type(TOrbitals), intent(in) :: orb
 
     select case (this%diffType)
@@ -258,7 +258,7 @@ contains
     !> Second atom in the diatomic block
     integer, intent(in) :: atomJ
 
-    !> Orbital informations
+    !> Orbital information
     type(TOrbitals), intent(in) :: orb
 
     ! Note, second derivatives are not Richardson interpolated yet, so finite difference code is

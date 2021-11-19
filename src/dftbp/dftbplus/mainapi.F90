@@ -712,7 +712,7 @@ contains
     type(TDftbPlusMain), intent(inout) :: main
 
 
-    ! Specificaly, denseDesc uses orb%nOrbAtom
+    ! Specifically, denseDesc uses orb%nOrbAtom
     call main%getDenseDescCommon()
     call getDenseDescBlacs(env, env%blacs%rowBlockSize, env%blacs%columnBlockSize,&
         & main%denseDesc, main%isSparseReorderRequired)

@@ -244,7 +244,7 @@ module dftbp_reks_reksvar
     !> If external charges must be considered
     logical :: tExtChrg
 
-    !> If charges should be blured
+    !> If charges should be blurred
     logical :: tBlur
 
 

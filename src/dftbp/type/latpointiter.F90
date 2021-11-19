@@ -7,7 +7,7 @@
 
 #:include 'common.fypp'
 
-!> Implements an interator over lattice points up to a certain cutoff
+!> Implements an iterator over lattice points up to a certain cutoff
 module dftbp_type_latpointiter
   use dftbp_common_accuracy, only : dp
   implicit none

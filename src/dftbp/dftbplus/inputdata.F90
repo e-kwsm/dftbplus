@@ -394,7 +394,7 @@ module dftbp_dftbplus_inputdata
     !> Correction to energy from on-site matrix elements
     real(dp), allocatable :: onSiteElements(:,:,:,:)
 
-    !> Correction to dipole momements on-site matrix elements
+    !> Correction to dipole moments on-site matrix elements
     real(dp), allocatable :: onSiteDipole(:,:)
 
     !> Number of external charges

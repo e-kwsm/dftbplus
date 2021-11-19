@@ -349,7 +349,7 @@ contains
     !> image atoms to central cell atoms
     integer, intent(in) :: img2CentCell(:)
 
-    !> potential acting on sustem
+    !> potential acting on system
     type(TPotentials), intent(in) :: potential
 
     !> Is this DFTB/SSR formalism

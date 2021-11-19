@@ -80,7 +80,7 @@ module dftbp_math_lapackroutines
   end interface getri
 
 
-  !> returns a vector of random numers, either from a uniform or normal distribution
+  !> returns a vector of random numbers, either from a uniform or normal distribution
   interface larnv
     module procedure larnv_real
     module procedure larnv_dble

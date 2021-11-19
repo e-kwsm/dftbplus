@@ -33,7 +33,7 @@ module dftbp_poisson_parcheck
   public :: check_poisson_box, check_contacts, check_localbc
   public :: check_parameters, write_parameters, check_biasdir
 
-  !> Verbosity threashold
+  !> Verbosity threshold
   integer, parameter :: VBT=30
 
 contains

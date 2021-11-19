@@ -90,7 +90,7 @@ contains
   end subroutine TUniqueHubbard_init
 
 
-  !> Performs a sum over unqiue U values
+  !> Performs a sum over unique U values
   subroutine sumOverUniqueU(this, valueShell, species, orb, valueUniqueU)
 
     !> Instance

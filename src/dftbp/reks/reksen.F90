@@ -94,7 +94,7 @@ module dftbp_reks_reksen
   end subroutine activeOrbSwap
 
 
-  !> Calculate filling for minimzed state with optimized FONs
+  !> Calculate filling for minimized state with optimized FONs
   subroutine getFilling(this, filling)
 
     !> data type for REKS
@@ -608,7 +608,7 @@ module dftbp_reks_reksen
   end subroutine MOswap22_
 
 
-  !> Calculate filling for minimzed state with optimized FONs in REKS(2,2)
+  !> Calculate filling for minimized state with optimized FONs in REKS(2,2)
   subroutine getFilling22_(filling, SAweight, FONs, Efunction, Nc)
 
     !> occupations (level)

@@ -145,7 +145,7 @@ contains
   !> Principle moment of inertia axes
   subroutine getPrincipleAxes(inertia, ei, coords, masses, centreOfMass, nMovedAtom)
 
-    !> Intertia axes
+    !> Inertia axes
     real(dp), intent(out) :: inertia(3,3)
 
     !> Moments

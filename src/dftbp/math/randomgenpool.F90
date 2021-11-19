@@ -58,7 +58,7 @@ module dftbp_math_randomgenpool
 contains
 
 
-  !> Intialises a random generator pool.
+  !> Initialises a random generator pool.
   subroutine RandomGenPool_init(this, env, seed, oldCompat)
 
     !> Instance.

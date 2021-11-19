@@ -983,7 +983,7 @@ contains
           dpsidr(:,iAt1,iAt2f) = dpsidr(:,iAt1,iAt2f)+dGr(:)
 
         else if (tOvij .and. tOvji) then tOverlap ! ij and ji overlap
-          ! overlaping spheres
+          ! overlapping spheres
           if((dist+rhoj) > rvdwi) then
             ! ij contribution
             r1 = 1.0_dp/dist

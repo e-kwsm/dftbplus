@@ -192,7 +192,7 @@ contains
       this%nCell = 1
     end if
 
-    ! Create coorinates for central cell and periodic images
+    ! Create coordinates for central cell and periodic images
     allocate(this%coords(3, this%nAtom, this%nCell))
     this%coords(:,:,1) = geometry%coords(:,:)
     call boundaryCond%foldCoordsToCell(this%coords(:,:,1), this%latVecs)

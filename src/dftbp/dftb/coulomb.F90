@@ -1304,7 +1304,7 @@ contains
     call distributeRangeInChunks2(env, 1, nAtom0, 1, nAtom1, iAtFirst0, iAtLast0, iAtFirst1,&
         & iAtLast1)
 
-    ! Doing blured and unblured cases separately to avoid ifs in the loop
+    ! Doing blurred and unblured cases separately to avoid ifs in the loop
     if (present(blurWidths1)) then
       if (tHamDeriv) then
         !$OMP PARALLEL DO&

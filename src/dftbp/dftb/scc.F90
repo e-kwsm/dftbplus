@@ -622,7 +622,7 @@ contains
   !> Calculates SCC energy contribution using the linearized XLBOMD form.
   !> Note: When SCC is driven in XLBOMD mode, the charges should NOT be updated after diagonalizing
   !> the Hamiltonian, so the charge stored in the module are the input (auxiliary) charges, used to
-  !> build the Hamiltonian.  However, the linearized energy expession needs also the output charges,
+  !> build the Hamiltonian.  However, the linearized energy expression needs also the output charges,
   !> therefore these are passed in as an extra variable.
   subroutine getEnergyPerAtomXlbomd(this, species, orb, qOut, q0, eScc)
 
@@ -829,7 +829,7 @@ contains
   !> Calculate the "double counting" force term using linearized XLBOMD form.
   !> Note: When SCC is driven in XLBOMD mode, the charges should NOT be updated after diagonalizing
   !> the Hamiltonian, so the charge stored in the module are the input (auxiliary) charges, used to
-  !> build the Hamiltonian.  However, the linearized energy expession needs also the output charges,
+  !> build the Hamiltonian.  However, the linearized energy expression needs also the output charges,
   !> therefore these are passed in as an extra variable.
   subroutine addForceDcXlbomd(this, env, species, orb, iNeighbour, img2CentCell, qOrbitalOut,&
       & q0, force)

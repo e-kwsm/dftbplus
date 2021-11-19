@@ -100,7 +100,7 @@ contains
 
   !> Creates a Broyden mixer instance.
   !> The weight associated with an iteration is calculated as weigthFac/ww where ww is the Euclidean
-  !> norm of the charge difference vector. If the calculated weigth is outside of the
+  !> norm of the charge difference vector. If the calculated weight is outside of the
   !> [minWeight,maxWeight] region it is replaced with the appropriate boundary value.
   subroutine BroydenMixer_init(this, mIter, mixParam, omega0, minWeight, &
       &maxWeight, weightFac)

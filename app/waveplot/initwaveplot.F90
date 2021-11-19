@@ -257,7 +257,7 @@ contains
     !> Nr. of spins
     integer :: nSpin
 
-    !> Wether to look for ground state occupations (True) or excited (False)
+    !> Whether to look for ground state occupations (True) or excited (False)
     logical :: tGroundState
 
     !> If grid should shifted by a half cell
@@ -374,7 +374,7 @@ contains
     !> Pointer to the node, containing the information
     type(fnode), pointer :: detailed
 
-    !> Wether to look for ground state occupations (True) or excited (False)
+    !> Whether to look for ground state occupations (True) or excited (False)
     logical, intent(in) :: tGroundState
 
     !> K-points and weights
@@ -513,7 +513,7 @@ contains
     !> Id of calculation at hand
     integer :: curId
 
-    !> If current level is found be calculated explicitely
+    !> If current level is found be calculated explicitly
     logical :: tFound
 
     !> Warning issued, if the detailed.xml id does not match the eigenvector id
@@ -574,7 +574,7 @@ contains
     call getChildValue(node, "PlottedSpins", buffer, child=field, multiple=.true.)
     call getSelectedIndices(node, char(buffer), [1, nSpin], this%opt%plottedSpins)
 
-    !! Create the list of the levels, which must be calculated explicitely
+    !! Create the list of the levels, which must be calculated explicitly
     call init(indexBuffer)
     do iSpin = 1, nSpin
       do iKPoint = 1, nKPoint
@@ -718,7 +718,7 @@ contains
   end subroutine readOptions
 
 
-  !> Read in the basis related informations
+  !> Read in the basis related information
   subroutine readBasis(this, node, speciesNames)
 
     !> Container of program variables

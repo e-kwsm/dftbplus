@@ -272,7 +272,7 @@ contains
   !> calculate the transition block at a specific atom
   subroutine transDens(ii, jj, iAt, iAtomStart, nOrb, updwn, ovrXev, grndEigVecs, qq_ij)
 
-    !> Index of inital state.
+    !> Index of initial state.
     integer, intent(in) :: ii
 
     !> Index of final state.
@@ -1152,7 +1152,7 @@ contains
               & * (onsite(:nOrb, :nOrb, 1) + fact * onsite(:nOrb, :nOrb, 2))
         end if
       end do
-      ! rotational invariance corection for diagonal part
+      ! rotational invariance correction for diagonal part
       do iSpin = 1, nSpin
         do iSh = 1, orb%nShell(iSp)
           degeneracy = real(2*orb%angShell(iSh, iSp) + 1, dp)
@@ -1402,7 +1402,7 @@ contains
     !> single particle excitation index
     integer, intent(in) :: win(:)
 
-    !> Casida exitation energies
+    !> Casida excitation energies
     real(dp), intent(in) :: eval(:)
 
     !> Casida excited eigenvectors (X+Y)

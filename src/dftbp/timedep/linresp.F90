@@ -258,7 +258,7 @@ contains
     !> Data for range separated calcualtion
     type(TRangeSepFunc), allocatable, intent(inout) :: rangeSep
 
-    !> excitation energy (only when nStat /=0, othewise set numerically 0)
+    !> excitation energy (only when nStat /=0, otherwise set numerically 0)
     real(dp), intent(out) :: excEnergy
 
     !> energies of all solved states

@@ -482,7 +482,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the real eigvectors into human readible output file (BLACS version).
+  !> Write the real eigvectors into human readable output file (BLACS version).
   subroutine writeRealEigvecsTxtBlacs(env, denseDesc, eigvecs, parallelKS, orb, over, iNeighbour,&
       & nNeighbourSK, iSparseStart, img2CentCell, species, speciesName, fileName)
 
@@ -677,7 +677,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the complex eigvectors into human readible output file (BLACS version).
+  !> Write the complex eigvectors into human readable output file (BLACS version).
   subroutine writeCplxEigvecsTxtBlacs(env, denseDesc, eigvecs, parallelKS, orb, over, kPoints,&
       & iNeighbour, nNeighbourSK, iCellVec, cellVec, iSparseStart, img2CentCell, species,&
       & speciesName, fileName)
@@ -897,7 +897,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the complex eigvectors into human readible output file (BLACS version).
+  !> Write the complex eigvectors into human readable output file (BLACS version).
   subroutine writePauliEigvecsTxtBlacs(env, denseDesc, eigvecs, parallelKS, orb, over, kPoints,&
       & iNeighbour, nNeighbourSK, iCellVec, cellVec, iSparseStart, img2CentCell, species,&
       & speciesName, fileName)
@@ -1223,7 +1223,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the real eigvectors into human readible output file (BLACS version).
+  !> Write the real eigvectors into human readable output file (BLACS version).
   subroutine writeProjRealEigvecsBlacs(env, denseDesc, fileNames, iOrbRegion, eigvals, eigvecs,&
       & parallelKS, over, neighbourList, nNeighbourSK, iSparseStart, img2CentCell)
 
@@ -1410,7 +1410,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the complex eigvectors into human readible output file (BLACS version).
+  !> Write the complex eigvectors into human readable output file (BLACS version).
   subroutine writeProjCplxEigvecsBlacs(env, denseDesc, fileNames, iOrbRegion, eigvals, eigvecs,&
       & parallelKS, kPoints, kWeights, over, neighbourList, nNeighbourSK, iSparseStart,&
       & img2CentCell, iCellVec, cellVec)
@@ -1629,7 +1629,7 @@ contains
 
 #:if WITH_SCALAPACK
 
-  !> Write the complex eigvectors into human readible output file (BLACS version).
+  !> Write the complex eigvectors into human readable output file (BLACS version).
   subroutine writeProjPauliEigvecsBlacs(env, denseDesc, fileNames, iOrbRegion, eigvals, eigvecs,&
       & orb, parallelKS, kPoints, kWeights, over, neighbourList, nNeighbourSK, iSparseStart,&
       & img2CentCell, iCellVec, cellVec)
@@ -3402,7 +3402,7 @@ contains
       write(fd, *)
     end if
 
-    ! only print excitation energy if 1) its been calculated and 2) its avaialable for a single
+    ! only print excitation energy if 1) its been calculated and 2) its available for a single
     ! state
     if (isLinResp .and. energy%Eexcited /= 0.0_dp) then
       write(fd, format2U) "Excitation Energy", energy%Eexcited, "H", Hartree__eV * energy%Eexcited,&
@@ -3699,7 +3699,7 @@ contains
   end subroutine writeDetailedOut8
 
 
-  !> Nineth group of data for detailed.out (derivatives with respect to an external electric field)
+  !> Ninth group of data for detailed.out (derivatives with respect to an external electric field)
   subroutine writeDetailedOut9(fd, orb, polarisability, dqOut, dEfdE)
 
     !> File ID
@@ -3947,7 +3947,7 @@ contains
     !> Full density matrix with on-diagonal adjustment
     real(dp), intent(in), allocatable :: deltaRhoIn(:)
 
-    !> Number of atoms in central region (atoms outside this will have charges suplied from
+    !> Number of atoms in central region (atoms outside this will have charges supplied from
     !> elsewhere)
     integer, intent(in) :: nAtInCentralRegion
 

@@ -85,7 +85,7 @@ module dftbp_poisson_poisson
   public :: init_poissbox, mudpack_drv, save_pot, rho, n_alpha
   public :: poiss_getlatvecs, poiss_updcoords, poiss_savepotential, poiss_freepoisson
 
-  !> Verbosity threashold
+  !> Verbosity threshold
   integer, parameter :: VBT=30
 
   real(kind=dp), ALLOCATABLE, DIMENSION (:,:,:) :: rhs_

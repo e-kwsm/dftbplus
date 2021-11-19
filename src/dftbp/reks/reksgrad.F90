@@ -2213,7 +2213,7 @@ contains
     !> if calculation is periodic
     logical, intent(in) :: tPeriodic
 
-    !> If charges should be blured
+    !> If charges should be blurred
     logical, intent(in) :: tBlur
 
 
@@ -2631,7 +2631,7 @@ contains
     !> if calculation is periodic
     logical, intent(in) :: tPeriodic
 
-    !> If charges should be blured
+    !> If charges should be blurred
     logical, intent(in) :: tBlur
 
     !> forces on external charges
@@ -4544,7 +4544,7 @@ contains
     call getq0qOutputqSpin(qOutputL, q0, iSquare, qOutputAO, qSpinAO, q0AO)
     ! rearrange gamma*Q, spin*Q
     call getGammaQSpinQ(qOutputAO, qSpinAO, q0AO, GammaAO, SpinAO, GammaQ, SpinQ)
-    ! rearrange (gamma derivtive) * Q
+    ! rearrange (gamma derivative) * Q
     call getGammaDerivQ(qOutputL, q0, GammaDeriv, GammaDerivQ)
 
     ! contributions related to gradient of external charges
@@ -4792,7 +4792,7 @@ contains
 
       end subroutine getGammaQSpinQ
 
-      !> rearrange (gamma derivtive) * Q
+      !> rearrange (gamma derivative) * Q
       subroutine getGammaDerivQ(qOutputL, q0, GammaDeriv, GammaDerivQ)
 
         !> Mulliken population for each microstate
@@ -5377,7 +5377,7 @@ contains
     !> if calculation is periodic
     logical, intent(in) :: tPeriodic
 
-    !> If charges should be blured
+    !> If charges should be blurred
     logical, intent(in) :: tBlur
 
     !> computed tr(R*T) gradient for SA-REKS, SSR, or L state
@@ -5521,7 +5521,7 @@ contains
         !> if calculation is periodic
         logical, intent(in) :: tPeriodic
 
-        !> If charges should be blured
+        !> If charges should be blurred
         logical, intent(in) :: tBlur
 
         !> Q_{pc} * (-1/R**2) between QM and PC

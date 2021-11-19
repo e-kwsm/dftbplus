@@ -63,7 +63,7 @@
 
 #! Adds a code block depending on the availability of an optional build component.
 #!
-#! Wraps code accessing routines or methods of an optional build component. The progamming
+#! Wraps code accessing routines or methods of an optional build component. The programming
 #! logic outside of the wrapped code must ensure, that the wrapped block is never reached if the
 #! optional component is not available. (In debug mode the wrapped code will be replaced with an
 #! error-call if the component is not available.)

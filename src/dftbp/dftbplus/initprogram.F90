@@ -719,7 +719,7 @@ module dftbp_dftbplus_initprogram
     !> Correction to energy from on-site matrix elements
     real(dp), allocatable :: onSiteElements(:,:,:,:)
 
-    !> Correction to dipole momements on-site matrix elements
+    !> Correction to dipole moments on-site matrix elements
     real(dp), allocatable :: onSiteDipole(:,:)
 
     !> Should block charges be mixed as well as charges
@@ -839,7 +839,7 @@ module dftbp_dftbplus_initprogram
     !> Whether lattice has changed since last geometry iteration
     logical :: tLatticeChanged
 
-    !> Whether atomic coordindates have changed since last geometry iteration
+    !> Whether atomic coordinates have changed since last geometry iteration
     logical :: tCoordsChanged
 
     !> Plumed calculator
@@ -1414,7 +1414,7 @@ contains
     if (input%ctrl%parallelOpts%nGroup > nIndepHam * this%nKPoint) then
       write(stdOut, *)"Parallel groups only relevant for tasks split over sufficient spins and/or&
           & k-points"
-      write(tmpStr,"('Nr. groups:',I4,', Nr. indepdendent spins times k-points:',I4)")&
+      write(tmpStr,"('Nr. groups:',I4,', Nr. independent spins times k-points:',I4)")&
           & input%ctrl%parallelOpts%nGroup, nIndepHam * this%nKPoint
       call error(trim(tmpStr))
     end if

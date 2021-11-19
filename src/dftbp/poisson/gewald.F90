@@ -639,7 +639,7 @@ contains
 
 
   !==============================================================================
-  !      get differnce between decline in reciprocal and real space
+  !      get difference between decline in reciprocal and real space
   !      this function is only used by function getalpha
   !
   !      INPUT:

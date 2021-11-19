@@ -112,7 +112,7 @@ module dftbp_poisson_mpi_poisson
         npg = 2
       end if
 
-      ! ovverride the exception case
+      ! override the exception case
       if (numprocs == maxnumprocs) npg = 1
 
       color = global_comm%rank/npg

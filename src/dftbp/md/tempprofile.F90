@@ -70,7 +70,7 @@ contains
   !> Creates a TempProfile instance.
   subroutine TempProfile_init(this, tempMethods, tempInts, tempValues)
 
-    !> TempProfile instane on return.
+    !> TempProfile instance on return.
     type(TTempProfile), intent(out) :: this
 
     !> The annealing method for each interval.

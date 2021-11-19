@@ -26,7 +26,7 @@ module dftbp_timedep_linresptypes
     !> is an energy window specified
     logical :: tEnergyWindow
 
-    !> energy window for transitions above energy of nexc-th single particle transtion
+    !> energy window for transitions above energy of nexc-th single particle transition
     real(dp) :: energyWindow
 
     !> is an oscillator window specified

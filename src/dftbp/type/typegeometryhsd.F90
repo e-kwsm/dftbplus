@@ -94,7 +94,7 @@ contains
   !> Read the geometry from a node in a HSD tree.
   subroutine readTGeometryHSD(node, geo)
 
-    !> Node in the HSD tree containing the geomery
+    !> Node in the HSD tree containing the geometry
     type(fnode), pointer :: node
 
     !> Contains the geometry on exit

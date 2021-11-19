@@ -127,7 +127,7 @@ contains
       input%transpar%idxdevice(1) = 1
       input%transpar%idxdevice(2) = input%geom%nAtom
     end if
-    ! input data strucutre has been initialised
+    ! input data structure has been initialised
     input%tInitialized = .true.
 
     ! Issue warning about unprocessed nodes

@@ -56,7 +56,7 @@ module dftbp_elecsolvers_elecsolvers
     logical, public :: providesFreeEnergy
 
     !> Whether the solver provides the electron chemical potential (or is consistent with its
-    !> evaluation or it being suplied externally)
+    !> evaluation or it being supplied externally)
     logical, public :: elecChemPotAvailable
 
     !> Data for ELSI solvers

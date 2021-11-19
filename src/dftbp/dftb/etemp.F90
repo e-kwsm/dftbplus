@@ -10,7 +10,7 @@
 !> Contains routines related to finite electron temperature, including Fermi, Gaussian and
 !> Methfessel-Paxton broadening functions.
 !> To do: Add other methods, including possibly Pederson and Jackson method
-!> PRB 43, 7312 (1991). Also fix exact occupation for electron numers, using
+!> PRB 43, 7312 (1991). Also fix exact occupation for electron numbers, using
 !> interpolation instead of bisection.
 module dftbp_dftb_etemp
   use dftbp_common_accuracy, only : dp, elecTol, elecTolMax, mExpArg, rsp
@@ -208,7 +208,7 @@ contains
     nElec = electronCount(Ef, eigenvals, kT, distrib, kWeight)
     call electronFill(Ebs,filling,TS,E0,Ef,eigenvals,kT,distrib,kWeight)
 
-    ! re-scale to give exact number of electrons, this is a temporay hack
+    ! re-scale to give exact number of electrons, this is a temporary hack
     if (nElec > epsilon(1.0_dp)) then
       filling(:,:,:) = filling * nElectrons / nElec
     end if

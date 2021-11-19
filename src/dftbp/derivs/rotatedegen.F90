@@ -95,7 +95,7 @@ module dftbp_derivs_rotatedegen
     procedure :: degenerateRealTransform
     generic :: degenerateTransform => degenerateCmplxTransform, degenerateRealTransform
 
-    !> Applys a unitary transformation to a matrix
+    !> Applies a unitary transformation to a matrix
     procedure :: applyCmplxUnitary
     procedure :: applyRealUnitary
     generic :: applyUnitary => applyCmplxUnitary, applyRealUnitary

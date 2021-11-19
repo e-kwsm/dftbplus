@@ -5,7 +5,7 @@
 !  See the LICENSE file for terms of usage and distribution.                                       !
 !--------------------------------------------------------------------------------------------------!
 
-!> Module for filling in optional arguments if suplied to a call, otherwise suplying a default
+!> Module for filling in optional arguments if supplied to a call, otherwise suplying a default
 !> value.
 module dftbp_common_optarg
   use dftbp_common_accuracy, only : dp

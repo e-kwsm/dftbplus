@@ -125,7 +125,7 @@ module dftbp_dftb_rangeseparated
 contains
 
 
-  !> Intitialize the range-sep module
+  !> Initialize the range-sep module
   subroutine RangeSepFunc_init(this, nAtom, species, hubbu, screen, omega, tSpin, tREKS, rsAlg)
 
     !> class instance

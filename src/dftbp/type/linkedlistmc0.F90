@@ -7,7 +7,7 @@
 
 #:include 'linkedlist.fypp'
 
-!> Linked list for single charcter strings
+!> Linked list for single character strings
 module dftbp_type_linkedlistmc0
   use dftbp_common_accuracy, only : mc
   implicit none

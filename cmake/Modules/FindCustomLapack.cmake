@@ -94,7 +94,7 @@ else()
 
     elseif(NOT "${LAPACK_LIBRARY}" STREQUAL "NONE")
 
-      # LAPACK explicitely set by the user, search for those libraries
+      # LAPACK explicitly set by the user, search for those libraries
       find_custom_libraries("${LAPACK_LIBRARY}" "${LAPACK_LIBRARY_DIR}"
         "${CustomLapack_FIND_QUIETLY}" _libs)
       set(LAPACK_LIBRARY "${_libs}" CACHE STRING "List of LAPACK libraries to link" FORCE)

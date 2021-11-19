@@ -116,7 +116,7 @@ contains
 
   !> Selects indices based on a selection expression.
   !>
-  !> The selection expression must statisfy following grammar:
+  !> The selection expression must satisfy following grammar:
   !>
   !> expr := addTerm { addTerm }
   !> addTerm := mulTerm { "&" mulTerm }

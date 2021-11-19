@@ -55,7 +55,7 @@ module dftbp_dftb_potentials
     real(dp), allocatable :: iorbitalBlock(:,:,:,:)
 
     !> If performing a contact calculation, variable for retaining the shell resolved electrostatics
-    !> for later storage. Ony the charge related potential is stored, so last index will be
+    !> for later storage. Only the charge related potential is stored, so last index will be
     !> allocated as 1 in most cases
     real(dp), allocatable :: coulombShell(:,:,:)
 

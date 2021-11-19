@@ -85,7 +85,7 @@ module dftbp_elecsolvers_elsicsc
 
   #:set TYPES = ['real', 'complex']
 
-  ! Internal routines addding blocks to ELSI matrices
+  ! Internal routines adding blocks to ELSI matrices
   interface addBlock2Elsi
     #:for TYPE in TYPES
       module procedure addBlock2Elsi${TYPE}$

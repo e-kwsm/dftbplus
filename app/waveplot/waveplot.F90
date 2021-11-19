@@ -256,7 +256,7 @@ program waveplot
       spinUp(:,:,:) = totChrg(:,:,:)
     end if
 
-    ! Build charge if needed for total charge or was explicitely required
+    ! Build charge if needed for total charge or was explicitly required
     tPlotLevel = any(wp%opt%plottedSpins == iSpin) &
         &.and. any(wp%opt%plottedKPoints == iKPoint) .and. any(wp%opt%plottedLevels == iLevel)
     if (wp%opt%tCalcTotChrg .or. (tPlotLevel .and. (wp%opt%tPlotChrg .or. wp%opt%tPlotChrgDiff)))&

@@ -76,7 +76,7 @@ contains
   end subroutine init
 
 
-  !> Set up bookeeping
+  !> Set up bookkeeping
   subroutine degeneracyTest(this, levels, tDegenerate)
 
     !> Instance

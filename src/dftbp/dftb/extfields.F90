@@ -52,7 +52,7 @@ module dftbp_dftb_extfields
     real(dp), allocatable :: atomicPotential(:)
 
     !> is this an onsite (net charge related, so diagonal elements of hamiltonian) or not
-    !> (gross/Mulliken charge related, so incluing off diagonal coupling)
+    !> (gross/Mulliken charge related, so including off diagonal coupling)
     logical, allocatable :: atomicOnSite(:)
 
   end type TEField

@@ -147,7 +147,7 @@ contains
 
 
     ! ------------------------------------------------------------------------------
-    ! Assign spin degenracy and check consistency between different input blocks
+    ! Assign spin degeneracy and check consistency between different input blocks
     if (tundos%defined .and. greendens%defined) then
       if (tundos%gSpin /= greendens%gSpin) then
         call error("spin degeneracy is not consistent between different input blocks")

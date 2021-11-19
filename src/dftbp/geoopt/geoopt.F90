@@ -69,7 +69,7 @@ module dftbp_geoopt_geoopt
 contains
 
 
-  !> Creates a general geometry optimizier with a conjugate gradient instance
+  !> Creates a general geometry optimizer with a conjugate gradient instance
   subroutine GeoOpt_iniTConjGrad(this, pConjGrad)
 
     !> GeoOpt instance
@@ -84,7 +84,7 @@ contains
   end subroutine GeoOpt_iniTConjGrad
 
 
-  !> Creates a general geometry optimizier with a steepest descent instance
+  !> Creates a general geometry optimizer with a steepest descent instance
   subroutine GeoOpt_iniTSteepDesc(this, pSteepDesc)
 
     !> GeoOpt instance
@@ -99,7 +99,7 @@ contains
   end subroutine GeoOpt_iniTSteepDesc
 
 
-  !> Creates a general geometry optimizier with a steepest descent instance
+  !> Creates a general geometry optimizer with a steepest descent instance
   subroutine GeoOpt_iniTDIIS(this, pDiis)
 
     !> GeoOpt instance
@@ -113,7 +113,7 @@ contains
 
   end subroutine GeoOpt_iniTDIIS
 
-  !> Creates a general geometry optimizier with a limited memory BFGS driver
+  !> Creates a general geometry optimizer with a limited memory BFGS driver
   subroutine GeoOpt_initLbfgs(this, pLbfgs)
 
     !> GeoOpt instance
@@ -128,7 +128,7 @@ contains
   end subroutine GeoOpt_initLbfgs
 
 
-  !> Creates a general geometry optimizier with a FIRE instance
+  !> Creates a general geometry optimizer with a FIRE instance
   subroutine GeoOpt_iniTFire(this, pFire)
 
     !> GeoOpt instance
