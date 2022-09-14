@@ -10,6 +10,7 @@
 #! to a source code documentation tool.
 
 #:include 'common.fypp'
+#:include 'error.fypp'
 
 !> Various I/O routines for the main program.
 module dftbp_dftbplus_mainio
@@ -19,6 +20,7 @@ module dftbp_dftbplus_mainio
   use dftbp_common_environment, only : TEnvironment
   use dftbp_common_file, only : TFile, TFile_create, TFileOptions
   use dftbp_common_globalenv, only : stdOut, destructGlobalEnv, abortProgram
+  use dftbp_common_status, only : TStatus
   use dftbp_dftb_determinants, only : TDftbDeterminants
   use dftbp_dftb_dispersions, only : TDispersionIface
   use dftbp_dftb_elstatpot, only : TElStatPotentials
@@ -32,15 +34,19 @@ module dftbp_dftbplus_mainio
   use dftbp_extlibs_xmlf90, only : xmlf_t, xml_OpenFile, xml_ADDXMLDeclaration, xml_NewElement,&
       & xml_EndElement, xml_Close
   use dftbp_io_charmanip, only : i2c
+  use dftbp_io_commonformats, only : formatHessian, formatBorn, formatGeoOut, format1U, format2U,&
+      & format1Ue, format2Ue, format1U1e
   use dftbp_io_formatout, only : writeXYZFormat, writeGenFormat, writeSparse, writeSparseAsSquare
   use dftbp_io_hsdutils, only : writeChildValue
   use dftbp_io_message, only : error, warning
   use dftbp_io_taggedoutput, only : TTaggedWriter, tagLabels
   use dftbp_math_blasroutines, only : hemv
+  use dftbp_math_eigensolver, only : heev
   use dftbp_md_mdintegrator, only : TMdIntegrator, state
   use dftbp_reks_reks, only : TReksCalc, reksTypes, setReksTargetEnergy
   use dftbp_solvation_cm5, only : TChargeModel5
   use dftbp_solvation_cosmo, only : TCosmo
+  use dftbp_solvation_fieldscaling, only : TScaleExtEField
   use dftbp_solvation_solvation, only : TSolvation
   use dftbp_type_commontypes, only : TOrbitals, TParallelKS
   use dftbp_type_densedescr, only : TDenseDescr
@@ -70,11 +76,11 @@ module dftbp_dftbplus_mainio
 #:endif
   public :: writeProjectedEigenvectors
   public :: initOutputFile, writeAutotestTag, writeResultsTag, writeDetailedXml, writeBandOut
-  public :: writeDerivBandOut, writeHessianOut
+  public :: writeDerivBandOut, writeHessianOut, writeBornChargesOut
   public :: openOutputFile
   public :: writeDetailedOut1, writeDetailedOut2, writeDetailedOut2Dets, writeDetailedOut3
-  public :: writeDetailedOut4, writeDetailedOut5, writeDetailedOut6
-  public :: writeDetailedOut7, writeDetailedOut8, writeDetailedOut9
+  public :: writeDetailedOut4, writeDetailedOut5, writeDetailedOut6, writeDetailedOut7
+  public :: writeDetailedOut8, writeDetailedOut9, writeDetailedOut10
   public :: writeMdOut1, writeMdOut2
   public :: writeCharges
   public :: writeEsp
@@ -97,29 +103,6 @@ module dftbp_dftbplus_mainio
 
   !> Ground state eigenvectors in binary format
   character(*), parameter :: eigvecBin = "eigenvec.bin"
-
-  !> Format string for energy second derivative matrix
-  character(len=*), parameter :: formatHessian = '(4f16.10)'
-
-  !> Atomic geometries format
-  character(len=*), parameter :: formatGeoOut = "(I5, F16.8, F16.8, F16.8)"
-
-  !> Format for a single value with units
-  character(len=*), parameter :: format1U = "(A, ':', T32, F18.10, T51, A)"
-
-  !> Format for two values with units
-  character(len=*), parameter :: format2U = "(A, ':', T32, F18.10, T51, A, T54, F16.4, T71, A)"
-
-  !> Format for a single value using exponential notation with units
-  character(len=*), parameter :: format1Ue = "(A, ':', T37, E13.6, T51, A)"
-
-  !> Format for two using exponential notation values with units
-  character(len=*), parameter :: format2Ue = "(A, ':', T37, E13.6, T51, A, T57, E13.6, T71, A)"
-
-  !> Format for mixed decimal and exponential values with units
-  character(len=*), parameter :: format1U1e =&
-      & "(' ', A, ':', T32, F18.10, T51, A, T57, E13.6, T71, A)"
-
 
   !> Cosmo file name
   character(len=*), parameter :: cosmoFile = "dftbp.cosmo"
@@ -1882,7 +1865,7 @@ contains
 #:endif
 
 
-  !> Open an output file and return its unit number
+  !> Open an output file and clear it
   subroutine initOutputFile(fileName)
 
     !> File name
@@ -1901,7 +1884,7 @@ contains
   subroutine writeAutotestTag(fileName, electronicSolver, tPeriodic, cellVol, tMulliken, qOutput,&
       & derivs, chrgForces, excitedDerivs, tStress, totalStress, pDynMatrix, energy, pressure,&
       & endCoords, tLocalise, localisation, esp, taggedWriter, tunneling, ldos, lCurrArray,&
-      & polarisability, dEidE)
+      & polarisability, dEidE, dipoleMoment, eFieldScaling)
 
     !> Name of output file
     character(*), intent(in) :: fileName
@@ -1957,6 +1940,9 @@ contains
     !> Object holding the potentials and their locations
     type(TElStatPotentials), allocatable, intent(in) :: esp
 
+    !> Tagged writer object
+    type(TTaggedWriter), intent(inout) :: taggedWriter
+
     !> tunneling array
     real(dp), allocatable, intent(in) :: tunneling(:,:)
 
@@ -1968,13 +1954,16 @@ contains
     real(dp), allocatable, intent(in) :: lCurrArray(:,:)
 
     !> Static electric polarisability
-    real(dp), intent(in), allocatable :: polarisability(:,:)
+    real(dp), intent(in), allocatable :: polarisability(:,:,:)
 
     !> Derivatives of eigenvalues wrt to electric field, if required
     real(dp), allocatable, intent(in) :: dEidE(:,:,:,:)
 
-    !> Tagged writer object
-    type(TTaggedWriter), intent(inout) :: taggedWriter
+    !> Overall dipole moment
+    real(dp), intent(in), allocatable :: dipoleMoment(:,:)
+
+    !> Any dielectric environment scaling
+    class(TScaleExtEField), intent(in) :: eFieldScaling
 
     real(dp), allocatable :: qOutputUpDown(:,:,:)
     integer :: fd
@@ -2027,7 +2016,6 @@ contains
       end if
     end if
 
-
     if (allocated(tunneling)) then
       if (size(tunneling, dim=1) > 0) then
         call taggedWriter%write(fd, tagLabels%tunn, tunneling)
@@ -2052,6 +2040,12 @@ contains
       call taggedWriter%write(fd, tagLabels%dEigenDE, dEidE)
     end if
 
+    if (allocated(dipoleMoment)) then
+      call taggedWriter%write(fd, tagLabels%dipoleMoment, dipoleMoment)
+      call taggedWriter%write(fd, tagLabels%scaledDipole,&
+          & eFieldScaling%scaledSoluteDipole(dipoleMoment))
+    end if
+
     close(fd)
 
   end subroutine writeAutotestTag
@@ -2059,9 +2053,9 @@ contains
 
   !> Writes out machine readable data
   subroutine writeResultsTag(fileName, energy, derivs, chrgForces, nEl, Ef, eigen, filling,&
-      & electronicSolver, tStress, totalStress, pDynMatrix, tPeriodic, cellVol, tMulliken,&
-      & qOutput, q0, taggedWriter, cm5Cont, polarisability, dEidE, dqOut, neFermi, dEfdE,&
-      & coord0, dipoleMoment, multipole)
+      & electronicSolver, tStress, totalStress, pDynMatrix, pBornMatrix, tPeriodic, cellVol,&
+      & tMulliken, qOutput, q0, taggedWriter, cm5Cont, polarisability, dEidE, dqOut, neFermi,&
+      & dEfdE, coord0, dipoleMoment, multipole, eFieldScaling)
 
     !> Name of output file
     character(*), intent(in) :: fileName
@@ -2099,6 +2093,9 @@ contains
     !> Hessian (dynamical) matrix
     real(dp), pointer, intent(in) :: pDynMatrix(:,:)
 
+    !> Born charge matrix
+    real(dp), pointer, intent(in) :: pBornMatrix(:,:)
+
     !> Is the geometry periodic
     logical, intent(in) :: tPeriodic
 
@@ -2114,11 +2111,14 @@ contains
     !> Reference atomic charges
     real(dp), intent(in) :: q0(:,:,:)
 
+    !> Tagged writer object
+    type(TTaggedWriter), intent(inout) :: taggedWriter
+
     !> Charge model 5 to correct atomic gross charges
     type(TChargeModel5), allocatable, intent(in) :: cm5Cont
 
     !> Static electric polarisability
-    real(dp), intent(in), allocatable :: polarisability(:,:)
+    real(dp), intent(in), allocatable :: polarisability(:,:,:)
 
     !> Derivatives of eigenvalues wrt to electric field, if required
     real(dp), allocatable, intent(in) :: dEidE(:,:,:,:)
@@ -2141,8 +2141,8 @@ contains
     !> Multipole moments
     type(TMultipole), intent(in) :: multipole
 
-    !> Tagged writer object
-    type(TTaggedWriter), intent(inout) :: taggedWriter
+    !> Any dielectric environment scaling
+    class(TScaleExtEField), intent(in) :: eFieldScaling
 
     real(dp), allocatable :: qOutputUpDown(:,:,:), qDiff(:,:,:)
     integer :: fd
@@ -2191,6 +2191,10 @@ contains
     if (associated(pDynMatrix)) then
       call taggedWriter%write(fd, tagLabels%HessianNum, pDynMatrix)
     end if
+    if (associated(pBornMatrix)) then
+      call taggedWriter%write(fd, tagLabels%BorndDipNum,&
+          & eFieldScaling%scaledSoluteDipole(pBornMatrix))
+    end if
     if (tPeriodic) then
       call taggedWriter%write(fd, tagLabels%volume, cellVol)
     end if
@@ -2211,15 +2215,13 @@ contains
 
     if (allocated(dipoleMoment)) then
       call taggedWriter%write(fd, tagLabels%dipoleMoment, dipoleMoment)
+      call taggedWriter%write(fd, tagLabels%scaledDipole,&
+          & eFieldScaling%scaledSoluteDipole(dipoleMoment))
     end if
 
     if (allocated(multipole%dipoleAtom)) then
-      block
-        real(dp), allocatable :: dipoleAtom(:, :), qAtom(:)
-        qAtom = sum(qOutput(:, :, 1) - q0(:, :, 1), dim=1)
-        dipoleAtom = -multipole%dipoleAtom(:, :, 1) - coord0 * spread(qAtom, 1, 3)
-        call taggedWriter%write(fd, tagLabels%dipoleAtom, dipoleAtom)
-      end block
+      call taggedWriter%write(fd, tagLabels%dipoleAtom,&
+          & eFieldScaling%scaledSoluteDipole(multipole%dipoleAtom))
     end if
 
     if (allocated(polarisability)) then
@@ -2491,8 +2493,8 @@ contains
   end subroutine writeDBand
 
 
-  !> Write the second derivative matrix
-  subroutine writeHessianOut(fileName, pDynMatrix, indMovedAtoms)
+  !> Write the energy second derivative matrix
+  subroutine writeHessianOut(fileName, pDynMatrix, indMovedAtoms, errStatus)
 
     !> File name
     character(*), intent(in) :: fileName
@@ -2503,15 +2505,17 @@ contains
     !> Indices of moved atoms
     integer, intent(in) :: indMovedAtoms(:)
 
+    !> Status of operation
+    type(TStatus), intent(out) :: errStatus
 
     integer :: ii, fd
     character(10) :: suffix1, suffix2
-    logical :: tPartialHessian = .false. 
+    logical :: tPartialHessian = .false.
 
     ! Sanity check in case some bug is introduced
     if (size(pDynMatrix, dim=2) /= 3*size(indMovedAtoms)) then
-      call error('Internal error: incorrect number of rows of dynamical Matrix')    
-    end if       
+      @:RAISE_ERROR(errStatus, -1, "Internal error: incorrect number of rows of dynamical Matrix")
+    end if
     ! It is a partial Hessian Calculation if DynMatrix is not squared
     if (size(pDynMatrix, dim=1) > size(pDynMatrix, dim=2)) then
       tPartialHessian = .true.
@@ -2519,10 +2523,10 @@ contains
 
     if (tPartialHessian) then
       write(suffix1,'(I10)') indMovedAtoms(1)
-      write(suffix2,'(I10)') indMovedAtoms(size(indMovedAtoms))     
-      open(newunit=fd, file=fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2)), &
-            & action="write", status="replace")
-    else 
+      write(suffix2,'(I10)') indMovedAtoms(size(indMovedAtoms))
+      open(newunit=fd, file=fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2)),&
+          & action="write", status="replace")
+    else
       open(newunit=fd, file=fileName, action="write", status="replace")
     end if
 
@@ -2533,13 +2537,70 @@ contains
     close(fd)
 
     if (tPartialHessian) then
-      write(stdOut, "(2A)") 'Hessian matrix written to ', &
-            & fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2))
+      write(stdOut, "(2A)") 'Hessian matrix written to ',&
+          & fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2))
     else
       write(stdOut, "(2A)") 'Hessian matrix written to ', fileName
     end if
 
   end subroutine writeHessianOut
+
+
+  !> Write the dipole derivative wrt.coordinates matrix/Born charges
+  subroutine writeBornChargesOut(fileName, pBornMatrix, indMovedAtoms, nAtInCentralRegion,&
+      & errStatus)
+
+    !> File name
+    character(*), intent(in) :: fileName
+
+    !> Born (dipole derivatives or force wrt electric field)
+    real(dp), intent(in) :: pBornMatrix(:,:)
+
+    !> Indices of moved atoms
+    integer, intent(in) :: indMovedAtoms(:)
+
+    !> Number of atoms in central region
+    integer, intent(in) :: nAtInCentralRegion
+
+    !> Status of operation
+    type(TStatus), intent(out) :: errStatus
+
+    integer :: ii, fd
+    character(10) :: suffix1, suffix2
+    logical :: tPartialMatrix = .false.
+
+    ! Sanity check in case some bug is introduced
+    if (any(shape(pBornMatrix) /= [3,3*size(indMovedAtoms)])) then
+      @:RAISE_ERROR(errStatus, -1, "Internal error: incorrectly shaped Born Matrix")
+    end if
+    ! It is a partial matrix Calculation if BornMatrix is not squared
+    if (size(pBornMatrix, dim=2) > 3*nAtInCentralRegion) then
+      tPartialMatrix = .true.
+    end if
+
+    if (tPartialMatrix) then
+      write(suffix1,'(I10)') indMovedAtoms(1)
+      write(suffix2,'(I10)') indMovedAtoms(size(indMovedAtoms))
+      open(newunit=fd, file=fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2)),&
+          & action="write", status="replace")
+    else
+      open(newunit=fd, file=fileName, action="write", status="replace")
+    end if
+
+    do ii = 1, size(pBornMatrix, dim=2)
+      write(fd, formatBorn) pBornMatrix(:, ii)
+    end do
+
+    close(fd)
+
+    if (tPartialMatrix) then
+      write(stdOut, "(2A)") 'Born charges matrix written to ',&
+          & fileName//"."//trim(adjustl(suffix1))//"-"//trim(adjustl(suffix2))
+    else
+      write(stdOut, "(2A)") 'Born charges matrix written to ', fileName
+    end if
+
+  end subroutine writeBornChargesOut
 
 
   !> Opens an output file or uses the its current unit number, if the file is already open.
@@ -2754,7 +2815,7 @@ contains
     !> Onsite mulliken population per atom
     real(dp), intent(in), optional :: qNetAtom(:)
 
-    real(dp), allocatable :: qOutputUpDown(:,:,:), qBlockOutUpDown(:,:,:,:)
+    real(dp), allocatable :: qOutputUpDown(:,:,:), qBlockOutUpDown(:,:,:,:), ev(:,:), ei(:)
     real(dp) :: angularMomentum(3)
     integer :: ang
     integer :: nAtom
@@ -2866,6 +2927,16 @@ contains
             do iOrb = 1, orb%nOrbSpecies(iSp)
               write(fd, "(16F8.4)") qBlockOut(1:orb%nOrbSpecies(iSp), iOrb, iAt, iSpin)
             end do
+            if (orb%nOrbSpecies(iSp) > 1) then
+              allocate(ei(orb%nOrbSpecies(iSp)))
+              ev = qBlockOut(:orb%nOrbSpecies(iSp), :orb%nOrbSpecies(iSp), iAt, iSpin)
+              call heev(ev, ei, 'l', 'v')
+              write(fd,*)'Eigen-decomposition'
+              do iOrb = 1, orb%nOrbSpecies(iSp)
+                write(fd, "(F8.4,A,16F8.4)") ei(iOrb),':',ev(:, iOrb)
+              end do
+              deallocate(ev, ei)
+            end if
             write(fd, *)
           end do
         end do
@@ -2979,6 +3050,16 @@ contains
             do iOrb = 1, orb%nOrbSpecies(iSp)
               write(fd, "(16F8.4)") qBlockOutUpDown(1:orb%nOrbSpecies(iSp), iOrb, iAt, iSpin)
             end do
+            if (orb%nOrbSpecies(iSp) > 1) then
+              allocate(ei(orb%nOrbSpecies(iSp)))
+              ev = qBlockOutUpDown(:orb%nOrbSpecies(iSp), :orb%nOrbSpecies(iSp), iAt, iSpin)
+              call heev(ev, ei, 'l', 'v')
+              write(fd,*)'Eigen-decomposition'
+              do iOrb = 1, orb%nOrbSpecies(iSp)
+                write(fd, "(F8.4,A,16F8.4)") ei(iOrb),':',ev(:, iOrb)
+              end do
+              deallocate(ev, ei)
+            end if
           end do
           write(fd, *)
         end if
@@ -3559,7 +3640,7 @@ contains
 
   !> Seventh group of data for detailed.out
   subroutine writeDetailedOut7(fd, tGeoOpt, tGeomEnd, tMd, tDerivs, eField, dipoleMoment,&
-      & deltaDftb, solvation, dipoleMessage)
+      & deltaDftb, eFieldScaling, dipoleMessage)
 
     !> File ID
     integer, intent(in) :: fd
@@ -3585,8 +3666,8 @@ contains
     !> type for DFTB determinants
     type(TDftbDeterminants), intent(in) :: deltaDftb
 
-    !> Instance of the solvation model
-    class(TSolvation), intent(in), allocatable :: solvation
+    !> Any dielectric environment scaling
+    class(TScaleExtEField), intent(in) :: eFieldScaling
 
     !> Optional extra message about dipole moments
     character(*), intent(in) :: dipoleMessage
@@ -3597,50 +3678,60 @@ contains
       end if
       if (deltaDftb%isNonAufbau) then
         if (deltaDftb%iGround > 0) then
-          write(fd, "(A, 3F14.8, A)")'S0 Dipole moment:', dipoleMoment(:,deltaDftb%iGround), ' au'
-          write(fd, "(A, 3F14.8, A)")'S0 Dipole moment:', dipoleMoment(:,deltaDftb%iGround)&
-              & * au__Debye, ' Debye'
+          write(fd, "(A, 3F14.8, A)")'S0 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iGround)), ' au'
+          write(fd, "(A, 3F14.8, A)")'S0 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iGround)) * au__Debye,&
+              & ' Debye'
           write(fd, *)
         end if
         if (deltaDftb%iTriplet > 0) then
-          write(fd, "(A, 3F14.8, A)")'T1 Dipole moment:', dipoleMoment(:,deltaDftb%iTriplet), ' au'
-          write(fd, "(A, 3F14.8, A)")'T1 Dipole moment:', dipoleMoment(:,deltaDftb%iTriplet)&
-              & * au__Debye, ' Debye'
+          write(fd, "(A, 3F14.8, A)")'T1 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iTriplet)), ' au'
+          write(fd, "(A, 3F14.8, A)")'T1 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iTriplet)) * au__Debye,&
+              & ' Debye'
           write(fd, *)
         end if
         if (deltaDftb%isSpinPurify) then
-          write(fd, "(A, 3F14.8, A)")'S1 Dipole moment:', dipoleMoment(:,deltaDftb%iFinal), ' au'
-          write(fd, "(A, 3F14.8, A)")'S1 Dipole moment:', dipoleMoment(:,deltaDftb%iFinal)&
-              & * au__Debye, ' Debye'
+          write(fd, "(A, 3F14.8, A)")'S1 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iFinal)), ' au'
+          write(fd, "(A, 3F14.8, A)")'S1 Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iFinal)) * au__Debye,&
+              & ' Debye'
           write(fd, *)
           if (deltaDftb%isSpinPurify .and. deltaDftb%iGround > 0) then
             write(fd, "(A, 3F14.8, A)")'S0 -> S1 transition dipole:',&
-                & dipoleMoment(:,deltaDftb%iFinal)-dipoleMoment(:,deltaDftb%iGround), ' au'
+                & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iFinal))&
+                & -eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iGround)), ' au'
           end if
         else
           write(fd, "(A, 3F14.8, A)")'Mixed state Dipole moment:',&
-              & dipoleMoment(:,deltaDftb%iMixed), ' au'
-          write(fd, "(A, 3F14.8, A)")'Mixed state Dipole moment:', dipoleMoment(:,deltaDftb%iMixed)&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iMixed)), ' au'
+          write(fd, "(A, 3F14.8, A)")'Mixed state Dipole moment:',&
+              & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iMixed))&
               & * au__Debye, ' Debye'
           write(fd, *)
         end if
       else
-        write(fd, "(A, 3F14.8, A)")'Dipole moment:', dipoleMoment(:,deltaDftb%iGround), ' au'
-        write(fd, "(A, 3F14.8, A)")'Dipole moment:', dipoleMoment(:,deltaDftb%iGround)&
-            & * au__Debye, ' Debye'
+        write(fd, "(A, 3F14.8, A)")'Dipole moment:',&
+            & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iGround)), ' au'
+        write(fd, "(A, 3F14.8, A)")'Dipole moment:',&
+            & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,deltaDftb%iGround)) * au__Debye,&
+            & ' Debye'
         write(fd, *)
-      end if
-      if (allocated(solvation)) then
-        if (solvation%isEFieldModified()) then
-          write(fd, "(A)")'Warning! Unmodified vacuum dielectric used for dipole moment.'
-        end if
       end if
     end if
 
     if (allocated(eField)) then
       if (allocated(eField%EFieldStrength)) then
-        write(fd, format1U1e) 'External E field', eField%absEField, 'au',&
-            & eField%absEField * au__V_m, 'V/m'
+        if (eFieldScaling%isRescaled) then
+          write(fd, format1U1e) 'Effective external E field', eField%absEField, 'au',&
+              & eField%absEField * au__V_m, 'V/m'
+        else
+          write(fd, format1U1e) 'External E field', eField%absEField, 'au',&
+              & eField%absEField * au__V_m, 'V/m'
+        end if
       end if
     end if
 
@@ -3667,9 +3758,28 @@ contains
 
   end subroutine writeDetailedOut7
 
+  !> Eighth group of data for detailed.out (Born effective charges)
+  subroutine writeDetailedOut8(fd, born)
 
-  !> Eighth group of data for detailed.out (density of states at Fermi energy)
-  subroutine writeDetailedOut8(fd, neFermi)
+    !> File ID
+    integer, intent(in) :: fd
+
+    !> Born charges
+    real(dp), intent(in) :: born(:,:)
+
+    integer :: ii
+
+    write(fd,*)'Born charges/dipole derivatives wrt. atom positions (e)'
+    do ii = 1, size(born,dim=2), 3
+      write(fd,"(A,1X,I0)")'Atom',ii/3+1
+      write(fd,"(3F12.6)")born(:,ii:ii+2)
+    end do
+
+  end subroutine writeDetailedOut8
+
+
+  !> Nineth group of data for detailed.out (density of states at Fermi energy)
+  subroutine writeDetailedOut9(fd, neFermi)
 
     !> File ID
     integer, intent(in) :: fd
@@ -3680,17 +3790,17 @@ contains
     if (allocated(neFermi)) then
       write(fd,"(A)", advance='no')'Density of states at the Fermi energy (a.u.): '
       if (size(neFermi)==2) then
-        write(fd,"(F12.8,A,F12.8,A)")neFermi(1), ' (up) ', neFermi(2), ' (down)'
+        write(fd,"(E12.6,A,E12.6,A)")neFermi(1), ' (up) ', neFermi(2), ' (down)'
       else
-        write(fd,"(F12.8)")neFermi
+        write(fd,"(E12.6)")neFermi
       end if
     end if
 
-  end subroutine writeDetailedOut8
+  end subroutine writeDetailedOut9
 
 
-  !> Nineth group of data for detailed.out (derivatives with respect to an external electric field)
-  subroutine writeDetailedOut9(fd, orb, polarisability, dqOut, dEfdE)
+  !> Tenth group of data for detailed.out (derivatives with respect to an external electric field)
+  subroutine writeDetailedOut10(fd, orb, polarisability, dqOut, dEfdE)
 
     !> File ID
     integer, intent(in) :: fd
@@ -3699,7 +3809,7 @@ contains
     type(TOrbitals), intent(in) :: orb
 
     !> Static electric polarisability
-    real(dp), intent(in), allocatable :: polarisability(:,:)
+    real(dp), intent(in), allocatable :: polarisability(:,:,:)
 
     !> Derivative of Mulliken charges wrt to electric field, if required
     real(dp), allocatable, intent(in) :: dqOut(:,:,:,:)
@@ -3707,7 +3817,7 @@ contains
     !> Derivative of the Fermi energy with respect to electric field
     real(dp), allocatable, intent(in) :: dEfdE(:,:)
 
-    integer :: iCart, iAt, nAtom, iS, nSpin
+    integer :: iCart, iAt, nAtom, iS, nSpin, iOmega
 
     if (allocated(dqOut)) then
       nAtom = size(dqOut, dim=2)
@@ -3756,14 +3866,16 @@ contains
 
     if (allocated(polarisability)) then
       write(fd,*)
-      write(fd,"(A)")'Static electric polarisability (a.u.)'
-      do iCart = 1, 3
-        write(fd,"(3E20.12)")polarisability(:, iCart)
+      write(fd,"(A)")'Electric polarisability (a.u.)'
+      do iOmega = 1, size(polarisability, dim=3)
+        do iCart = 1, 3
+          write(fd,"(3E20.12)")polarisability(:, iCart, iOmega)
+        end do
       end do
       write(fd,*)
     end if
 
-  end subroutine writeDetailedOut9
+  end subroutine writeDetailedOut10
 
 
   !> First group of output data during molecular dynamics
@@ -3786,7 +3898,7 @@ contains
   !> Second group of output data during molecular dynamics
   subroutine writeMdOut2(fd, tStress, tPeriodic, tBarostat, isLinResp, eField, tFixEf,&
       & tPrintMulliken, energy, energiesCasida, latVec, cellVol, cellPressure, pressure, tempIon,&
-      & qOutput, q0, dipoleMoment, solvation, dipoleMessage)
+      & qOutput, q0, dipoleMoment, eFieldScaling, dipoleMessage)
 
     !> File ID
     integer, intent(in) :: fd
@@ -3842,8 +3954,8 @@ contains
     !> dipole moment if available
     real(dp), intent(inout), allocatable :: dipoleMoment(:,:)
 
-    !> Instance of the solvation model
-    class(TSolvation), intent(in), allocatable :: solvation
+    !> Any dielectric environment scaling
+    class(TScaleExtEField), intent(in) :: eFieldScaling
 
     !> Optional extra message about dipole moments
     character(*), intent(in) :: dipoleMessage
@@ -3901,13 +4013,10 @@ contains
         write(fd, "(A)")trim(dipoleMessage)
       end if
       ii = size(dipoleMoment, dim=2)
-      write(fd, "(A, 3F14.8, A)") 'Dipole moment:', dipoleMoment(:,ii),  'au'
-      write(fd, "(A, 3F14.8, A)") 'Dipole moment:', dipoleMoment(:,ii) * au__Debye,  'Debye'
-      if (allocated(solvation)) then
-        if (solvation%isEFieldModified()) then
-          write(fd, "(A)")'Warning! Unmodified vacuum dielectric used for dipole moment.'
-        end if
-      end if
+      write(fd, "(A, 3F14.8, 1X,A)") 'Dipole moment:',&
+          & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,ii)),  'au'
+      write(fd, "(A, 3F14.8, 1X, A)") 'Dipole moment:',&
+          & eFieldScaling%scaledSoluteDipole(dipoleMoment(:,ii)) * au__Debye,  'Debye'
     end if
 
   end subroutine writeMdOut2

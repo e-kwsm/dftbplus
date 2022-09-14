@@ -6,6 +6,7 @@
 !--------------------------------------------------------------------------------------------------!
 
 #:include "common.fypp"
+#:include 'error.fypp'
 
 !> Interface to LIBNEGF for DFTB+
 module dftbp_transport_negfint
@@ -13,6 +14,7 @@ module dftbp_transport_negfint
   use dftbp_common_constants, only : Hartree__eV, pi
   use dftbp_common_environment, only : TEnvironment
   use dftbp_common_globalenv, only : stdOut, tIOproc
+  use dftbp_common_status, only : TStatus
   use dftbp_dftb_periodic, only : TNeighbourList, TNeighbourlist_init, updateNeighbourListAndSpecies
   use dftbp_dftb_sparse2dense, only : blockSymmetrizeHS, unpackHS
   use dftbp_elecsolvers_elecsolvertypes, only : electronicSolverTypes
@@ -114,7 +116,7 @@ contains
     ! Set defaults and fill up the parameter structure with them
     call init_negf(this%negf)
     call init_contacts(this%negf, ncont)
-    call set_scratch(this%negf, ".")
+    call set_scratch(this%negf, "./GS/")
 
     if (tIoProc .and. greendens%saveSGF ) then
       call create_scratch(this%negf)
@@ -289,7 +291,7 @@ contains
       end if
       write(stdOut,*) 'Contour Points: ', params%Np_n(1:2)
       write(stdOut,*) 'Number of poles: ', params%N_poles
-      write(stdOut,*) 'Real-axis points: ', params%Np_real(1)
+      write(stdOut,*) 'Real-axis points: ', params%Np_real
       if (params%readOldDM_SGFs==0) then
         write(stdOut,*) 'Read Existing SGFs: Yes '
       else
@@ -355,15 +357,6 @@ contains
       !this%negf%tNoGeometry = transpar%tNoGeometry
       this%negf%tOrthonormal = transpar%tOrthonormal
       this%negf%tOrthonormalDevice = transpar%tOrthonormalDevice
-      this%negf%NumStates = transpar%NumStates
-      this%negf%tManyBody = transpar%tManyBody
-      this%negf%tElastic = transpar%tElastic
-      this%negf%tZeroCurrent = transpar%tZeroCurrent
-      this%negf%MaxIter = transpar%MaxIter
-      this%negf%trans%out%tWriteDOS = transpar%tWriteDOS
-      this%negf%tWrite_ldos = transpar%tWrite_ldos
-      this%negf%tWrite_negf_params = transpar%tWrite_negf_params
-      this%negf%trans%out%tDOSwithS = transpar%tDOSwithS
       this%negf%cont(:)%name = transpar%contacts(:)%name
       this%negf%cont(:)%tWriteSelfEnergy = transpar%contacts(:)%tWriteSelfEnergy
       this%negf%cont(:)%tReadSelfEnergy = transpar%contacts(:)%tReadSelfEnergy
@@ -374,11 +367,6 @@ contains
     ! Defined outside transpar%defined ... HAS TO BE FIXED
     this%negf%tDephasingVE = transpar%tDephasingVE
     this%negf%tDephasingBP = transpar%tDephasingBP
-
-    if((.not. this%negf%tElastic).and.(.not. this%negf%tManyBody)) then
-      write(stdOut, *)'Current is not calculated!'
-      call error('Choose "Elastic = Yes" or "ManyBody = Yes"!')
-    end if
 
   end subroutine TNegfInt_init
 
@@ -781,7 +769,7 @@ contains
 
     call get_params(negf, params)
 
-    params%kpoint = nkpoint
+    params%ikpoint = nkpoint
     params%spin = spin
     params%DorE='N'
     nn=size(mu,1)
@@ -845,8 +833,8 @@ contains
     call get_params(negf, params)
 
     params%spin = spin
-    params%kpoint = kpoint
-    params%wght = wght
+    params%ikpoint = kpoint
+    params%kwght = wght
 
     call pass_HS(negf,HH,SS)
 
@@ -973,8 +961,8 @@ contains
     call get_params(negf, params)
 
     params%spin = spin
-    params%kpoint = kpoint
-    params%wght = wght
+    params%ikpoint = kpoint
+    params%kwght = wght
 
     call set_params(negf, params)
 
@@ -1822,7 +1810,7 @@ contains
   ! NOTE: Limited to non-periodic systems
   subroutine local_currents(this, env, groupKS, ham, over, neighbourList, nNeighbour, skCutoff,&
       & iAtomStart, iPair, img2CentCell, iCellVec, cellVec, rCellVec, orb, kPoints, kWeights,&
-      & coord0, species0, speciesName, chempot, testArray)
+      & coord0, species0, speciesName, chempot, testArray, errStatus)
 
     !> Instance.
     class(TNegfInt), target, intent(inout) :: this
@@ -1882,6 +1870,8 @@ contains
     !> Array passed back to main for autotests (will become the output)
     real(dp), allocatable, intent(out) :: testArray(:,:)
 
+    !> Operation status, if an error needs to be returned
+    type(TStatus), intent(out) :: errStatus
 
     ! Local stuff ---------------------------------------------------------
     integer :: n0, nn, mm,  mu, nu, nAtom, irow
@@ -1950,8 +1940,9 @@ contains
     allocate(lc_iCellVec(lc_nAllAtom))
     call TNeighbourlist_init(lc_neigh, nAtom, nInitNeigh)
 
-    call updateNeighbourListAndSpecies(lc_coord, lc_species, lc_img2CentCell, lc_iCellVec, &
-        & lc_neigh, lc_nAllAtom, coord0, species0, skCutoff, rCellVec, symmetric=.true.)
+    call updateNeighbourListAndSpecies(env, lc_coord, lc_species, lc_img2CentCell, lc_iCellVec, &
+        & lc_neigh, lc_nAllAtom, coord0, species0, skCutoff, rCellVec, errStatus, symmetric=.true.)
+    @:PROPAGATE_ERROR(errStatus)
 
     allocate(lcurr(maxval(lc_neigh%nNeighbour), nAtom, nSpin))
     lcurr(:,:,:) = 0.0_dp

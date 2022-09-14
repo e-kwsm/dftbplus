@@ -5,6 +5,8 @@
 !  See the LICENSE file for terms of usage and distribution.                                       !
 !--------------------------------------------------------------------------------------------------!
 
+#:include 'common.fypp'
+
 !> Contains routines to convert HSD input for old parser to the current format.
 !> Note: parserVersion is set in parser.F90
 module dftbp_dftbplus_oldcompat
@@ -70,6 +72,12 @@ contains
       case (9)
         call convert_9_10(root)
         version = 10
+      case (10)
+        call convert_10_11(root)
+        version = 11
+      case (11)
+        call convert_11_12(root)
+        version = 12
       end select
     end do
 
@@ -136,8 +144,7 @@ contains
         call detailedError(ch1, "Sorry, non-variational energy calculation &
             &is not supported any more!")
       else
-        call detailedWarning(ch1, "Energy calculation is made only &
-            &variational, option removed.")
+        call detailedWarning(ch1, "Energy calculation is made only variational, option removed.")
         call destroyNode(ch1)
       end if
     end if
@@ -706,6 +713,88 @@ contains
     end if
 
   end subroutine convert_9_10
+
+
+  !> Converts input from version 10 to 11. (Version 11 introduced in April 2022)
+  subroutine convert_10_11(root)
+
+    !> Root tag of the HSD-tree
+    type(fnode), pointer :: root
+
+    type(fnode), pointer :: ch1, ch2, ch3, ch4, par, dummy
+
+    call getDescendant(root, "Hamiltonian/DFTB/Solvation/GeneralizedBorn", ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Set solvated field scaling (RescaleSolvatedFields) to No.")
+      call setChildValue(ch1, "RescaleSolvatedFields", .false., child=ch2, replace=.true.)
+    end if
+
+    call getDescendant(root, "Hamiltonian/DFTB/Solvation/Cosmo", ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Set solvated field scaling (RescaleSolvatedFields) to No.")
+      call setChildValue(ch1, "RescaleSolvatedFields", .false., child=ch2, replace=.true.)
+    end if
+
+    call getDescendant(root, "Hamiltonian/DFTB/Solvation/Sasa", ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Set solvated field scaling (RescaleSolvatedFields) to No.")
+      call setChildValue(ch1, "RescaleSolvatedFields", .false., child=ch2, replace=.true.)
+    end if
+
+  end subroutine convert_10_11
+
+
+  !> Converts input from version 11 to 12. (Version 12 introduced in June 2022)
+  subroutine convert_11_12(root)
+
+    !> Root tag of the HSD-tree
+    type(fnode), pointer :: root
+
+    type(fnode), pointer :: ch1, ch2
+    type(string) :: buffer
+
+    call getDescendant(root, "Driver/GeometryOptimization", ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Keyword renamed to 'GeometryOptimisation'.")
+      call setNodeName(ch1, "GeometryOptimisation")
+      call getDescendant(root, "Driver/GeometryOptimisation/Optimizer", ch2)
+      if (associated(ch2)) then
+        call detailedWarning(ch2, "Keyword renamed to 'Optimiser'.")
+        call setNodeName(ch2, "Optimiser")
+      end if
+    end if
+
+  #:for LABEL in [("Kick"), ("Laser")]
+    call getDescendant(root, "ElectronDynamics/Perturbation/${LABEL}$/PolarizationDirection", ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Keyword renamed to 'PolarisationDirection'.")
+      call setNodeName(ch1, "PolarisationDirection")
+    end if
+    call getDescendant(root, "ElectronDynamics/Perturbation/${LABEL}$/ImagPolarizationDirection",&
+        & ch1)
+    if (associated(ch1)) then
+      call detailedWarning(ch1, "Keyword renamed to 'ImagPolarisationDirection'.")
+      call setNodeName(ch1, "ImagPolarisationDirection")
+    end if
+  #:endfor
+
+    call getDescendant(root, "Transport", ch1)
+    if (associated(ch1)) then
+      call getChildValue(root, "Transport/Task", ch1, child=ch2, default='uploadcontacts')
+      call getNodeName(ch1, buffer)
+      if (char(buffer) /= "contacthamiltonian") then
+      #:for LABEL in [("xTB"), ("DFTB")]
+        call getDescendant(root, "Hamiltonian/${LABEL}$/Charge", ch1)
+        if (associated(ch1)) then
+          call setUnprocessed(ch1)
+          call detailedWarning(ch1, "Device region charge cannot be set if contacts are present.")
+          call destroyNode(ch1)
+        end if
+      #:endfor
+      end if
+    end if
+
+  end subroutine convert_11_12
 
 
   !> Update values in the DftD3 block to match behaviour of v6 parser
