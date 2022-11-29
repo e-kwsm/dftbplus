@@ -62,6 +62,7 @@ module dftbp_dftbplus_parser
   use dftbp_md_tempprofile, only : identifyTempProfile
   use dftbp_md_xlbomd, only : TXlbomdInp
   use dftbp_mixer_mixer, only : mixerTypes
+  use dftbp_dftb_nonscc, only : diffTypes
   use dftbp_reks_reks, only : reksTypes
   use dftbp_solvation_solvparser, only : readSolvation, readCM5
   use dftbp_timedep_timeprop, only : TElecDynamicsInp, pertTypes, tdSpinTypes, envTypes
@@ -930,8 +931,8 @@ contains
     !> Is the maximum step size relevant for this driver
     logical, intent(in), optional :: isMaxStepNeeded
 
-    type(fnode), pointer :: child, child2, child3, value1, value2, field
-    type(string) :: buffer, buffer2, modifier
+    type(fnode), pointer :: child, field
+    type(string) :: buffer2, modifier
     logical :: isMaxStep
 
     if (present(isMaxStepNeeded)) then
@@ -1329,7 +1330,7 @@ contains
 
     ctrl%hamiltonian = hamiltonianTypes%dftb
 
-    call readMaxAngularMomentum(node, ctrl, geo, angShells)
+    call readMaxAngularMomentum(node, geo, angShells)
 
     ! Orbitals and angular momenta for the given shells (once the SK files contain the full
     ! information about the basis, this will be moved to the SK reading routine).
@@ -1532,30 +1533,8 @@ contains
     ! External fields and potentials
     call readExternal(node, ctrl, geo)
 
-    call getChild(node, "SpinOrbit", child, requested=.false.)
-    if (.not. associated(child)) then
-      ctrl%tSpinOrbit = .false.
-      allocate(ctrl%xi(0,0))
-    else
-      if (ctrl%tSpin .and. .not. ctrl%t2Component) then
-        call error("Spin-orbit coupling incompatible with collinear spin.")
-      end if
-
-      ctrl%tSpinOrbit = .true.
-      ctrl%t2Component = .true.
-
-      call getChildValue(child, "Dual", ctrl%tDualSpinOrbit, .true.)
-
-      allocate(ctrl%xi(slako%orb%mShell,geo%nSpecies))
-      ctrl%xi = 0.0_dp
-      do iSp1 = 1, geo%nSpecies
-        call getChildValue(child, geo%speciesNames(iSp1), &
-            & ctrl%xi(:slako%orb%nShell(iSp1),iSp1), modifier=modifier, &
-            & child=child2 )
-        call convertUnitHsd(char(modifier), energyUnits, child2, &
-            & ctrl%xi(:slako%orb%nShell(iSp1),iSp1))
-      end do
-    end if
+    ! Non-self-consistent spin-orbit coupling
+    call readSpinOrbit(node, ctrl, geo, slako%orb)
 
     ! Electronic solver
   #:if WITH_TRANSPORT
@@ -1832,13 +1811,13 @@ contains
     !> Poisson solver paramenters
     type(TPoissonInfo), intent(inout) :: poisson
 
-    type(fnode), pointer :: value1, child
-    type(string) :: buffer
+    type(fnode), pointer :: value1, child, child2
+    type(string) :: buffer, modifier
     type(string), allocatable :: searchPath(:)
     logical :: tBadIntegratingKPoints
-    logical :: tSCCdefault
-    integer :: method
+    integer :: method, iSp1
     character(len=:), allocatable :: paramFile, paramTmp
+    type(TOrbitals) :: orb
 
     ctrl%hamiltonian = hamiltonianTypes%xtb
 
@@ -1903,7 +1882,7 @@ contains
     end if ifSCC
 
     ! Spin calculation
-    if (ctrl%reksInp%reksAlg == reksTypes%noReks .and. .not.ctrl%isNonAufbau) then
+    if (ctrl%reksInp%reksAlg == reksTypes%noReks .and. .not.ctrl%isNonAufbau .and. ctrl%tSCC) then
     #:if WITH_TRANSPORT
       call readSpinPolarisation(node, ctrl, geo, tp)
     #:else
@@ -1921,6 +1900,10 @@ contains
 
     ! External fields and potentials
     call readExternal(node, ctrl, geo)
+
+    ! Non-self-consistent spin-orbit coupling
+    call ctrl%tbliteInp%setupOrbitals(geo%species, orb)
+    call readSpinOrbit(node, ctrl, geo, orb)
 
     ! Electronic solver
   #:if WITH_TRANSPORT
@@ -1986,14 +1969,56 @@ contains
   end subroutine readXTBHam
 
 
-  !> Read in maximal angular momenta or selected shells
-  subroutine readMaxAngularMomentum(node, ctrl, geo, angShells)
+  !> Reads in settings for spin orbit enabled calculations
+  subroutine readSpinOrbit(node, ctrl, geo, orb)
 
     !> Node to get the information from
     type(fnode), pointer :: node
 
     !> Control structure to be filled
     type(TControl), intent(inout) :: ctrl
+
+    !> Geometry structure to be filled
+    type(TGeometry), intent(in) :: geo
+
+    !> Information about the orbitals of the species/atoms in the system
+    class(TOrbitals), intent(in) :: orb
+
+    type(fnode), pointer :: child, child2
+    type(string) :: modifier
+    integer :: iSp
+
+    call getChild(node, "SpinOrbit", child, requested=.false.)
+    if (.not. associated(child)) then
+      ctrl%tSpinOrbit = .false.
+      allocate(ctrl%xi(0,0))
+    else
+      if (ctrl%tSpin .and. .not. ctrl%t2Component) then
+        call error("Spin-orbit coupling incompatible with collinear spin.")
+      end if
+
+      ctrl%tSpinOrbit = .true.
+      ctrl%t2Component = .true.
+
+      call getChildValue(child, "Dual", ctrl%tDualSpinOrbit, .true.)
+
+      allocate(ctrl%xi(orb%mShell,geo%nSpecies), source = 0.0_dp)
+      do iSp = 1, geo%nSpecies
+        call getChildValue(child, geo%speciesNames(iSp), &
+            & ctrl%xi(:orb%nShell(iSp),iSp), modifier=modifier, child=child2 )
+        call convertUnitHsd(char(modifier), energyUnits, child2,&
+            & ctrl%xi(:orb%nShell(iSp),iSp))
+      end do
+    end if
+
+  end subroutine readSpinOrbit
+
+
+  !> Read in maximal angular momenta or selected shells
+  subroutine readMaxAngularMomentum(node, geo, angShells)
+
+    !> Node to get the information from
+    type(fnode), pointer :: node
 
     !> Geometry structure to be filled
     type(TGeometry), intent(in) :: geo
@@ -3061,10 +3086,6 @@ contains
     !> Geometry structure to be filled
     type(TGeometry), intent(in) :: geo
 
-    type(fnode), pointer :: value1, value2, child, child2
-    type(string) :: buffer, buffer2
-    type(TListRealR1) :: lr1
-
     ctrl%tMulliken = .true.
 
     call getChildValue(node, "ReadInitialCharges", ctrl%tReadChrg, .false.)
@@ -3291,13 +3312,13 @@ contains
     call getNodeName(val, buffer)
     select case (char(buffer))
     case ("finitediff")
-      ctrl%iDerivMethod = 1
+      ctrl%iDerivMethod = diffTypes%finiteDiff
       call getChildValue(val, "Delta", ctrl%deriv1stDelta, defDelta,&
           & modifier=modifier, child=child)
       call convertUnitHsd(char(modifier), lengthUnits, child,&
           & ctrl%deriv1stDelta)
     case ("richardson")
-      ctrl%iDerivMethod = 2
+      ctrl%iDerivMethod = diffTypes%richardson
     case default
       call getNodeHSDName(val, buffer)
       call detailedError(child, "Invalid derivative calculation '" &
@@ -4241,7 +4262,7 @@ contains
     !> Filled input structure on exit.
     type(TSimpleDftD3Input), intent(out) :: input
 
-    type(fnode), pointer :: value1, child, childval
+    type(fnode), pointer :: child
     type(string) :: buffer
 
     call getChildValue(node, "s6", input%s6, default=1.0_dp)
@@ -4914,18 +4935,16 @@ contains
     type(TNEGFTunDos), intent(inout) :: tundos
   #:endif
 
-    type(fnode), pointer :: val, child, child2, child3, child4
+    type(fnode), pointer :: val, child, child2, child3
     type(fnodeList), pointer :: children
     integer, allocatable :: pTmpI1(:)
     type(string) :: buffer, modifier
-    integer :: nReg, iReg, nFreq, iFreq, jFreq
+    integer :: nReg, iReg
     character(lc) :: strTmp
     type(TListRealR1) :: lr1
     type(TListReal) :: lr
     logical :: tPipekDense
     logical :: tWriteBandDatDef, tHaveEigenDecomposition, tHaveDensityMatrix
-    real(dp), allocatable :: tmpR(:)
-    real(dp) :: tmp3R(3)
     logical :: isEtaNeeded
 
     tHaveEigenDecomposition = .false.
@@ -5153,7 +5172,6 @@ contains
     type(string) :: modifier
     integer :: nFreq, iFreq, jFreq
     real(dp) :: tmp3R(3)
-    real(dp), allocatable :: tmpR(:)
     logical :: isStatic
 
     call getChildValue(node, "Static", isStatic, .true.)
@@ -5437,10 +5455,14 @@ contains
       ctrl%spinW(:,:,:) = 0.0_dp
 
       call getChild(hamNode, "SpinConstants", child)
-      if (.not.ctrl%tShellResolved) then
-        call getChildValue(child, "ShellResolvedSpin", tShellResolvedW, .false.)
+      if (ctrl%hamiltonian == hamiltonianTypes%xtb) then
+        call getChildValue(child, "ShellResolvedSpin", tShellResolvedW, .true.)
       else
-        tShellResolvedW = .true.
+        if (.not.ctrl%tShellResolved) then
+          call getChildValue(child, "ShellResolvedSpin", tShellResolvedW, .false.)
+        else
+          tShellResolvedW = .true.
+        end if
       end if
 
       if (tShellResolvedW) then
@@ -5875,7 +5897,7 @@ contains
     transpar%ncont = getLength(pNodeList)
     allocate(transpar%contacts(transpar%ncont))
 
-    call readContacts(pNodeList, transpar%contacts, geom, char(buffer))
+    call readContacts(pNodeList, transpar%contacts, geom, char(buffer), transpar%contactLayerTol)
 
     transpar%taskUpload = .false.
 
@@ -6363,7 +6385,7 @@ contains
 
       call getChildValue(pTmp2, "GatePotential", poisson%gatepot, 0.0_dp, modifier=modifier,&
           & child=field)
-      call convertUnitHsd(char(modifier), lengthUnits, field, poisson%gatepot)
+      call convertUnitHsd(char(modifier), energyUnits, field, poisson%gatepot)
 
     case default
       call getNodeHSDName(pTmp2, buffer)
@@ -6955,13 +6977,15 @@ contains
 
 
   !> Read bias information, used in Analysis and Green's function eigensolver
-  subroutine readContacts(pNodeList, contacts, geom, task)
+  subroutine readContacts(pNodeList, contacts, geom, task, contactLayerTol)
     type(fnodeList), pointer :: pNodeList
     type(ContactInfo), allocatable, dimension(:), intent(inout) :: contacts
     type(TGeometry), intent(in) :: geom
     character(*), intent(in) :: task
 
-    real(dp) :: contactLayerTol
+    !> Tolerance to distortion of contact vectors
+    real(dp), intent(out) :: contactLayerTol
+
     integer :: ii
     type(fnode), pointer :: field, pNode, pTmp, child1, child2
     type(string) :: buffer, modifier
@@ -7897,8 +7921,12 @@ contains
 
     type(fnode), pointer :: chimes
     type(string) :: buffer
+
+  #:if WITH_CHIMES
     type(string), allocatable :: searchPath(:)
-    character(:), allocatable :: chimesFile
+  #:endif
+
+    character(len=:), allocatable :: chimesFile
 
     call getChild(root, "Chimes", chimes, requested=.false.)
     if (.not. associated(chimes)) return

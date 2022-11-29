@@ -29,6 +29,7 @@ module dftbp_transport_negfint
   use dftbp_io_formatout, only : writeXYZFormat
   use dftbp_io_message, only : error, warning
   use dftbp_math_eigensolver, only : heev
+  use dftbp_math_lapackroutines, only : gesvd
   use dftbp_transport_matconv, only : init, destruct, foldToCSR, unfoldFromCSR
   use dftbp_transport_negfvars, only : TTranspar, TNEGFGreenDensInfo, TNEGFTunDos, ContactInfo,&
       & TElph
@@ -76,7 +77,8 @@ module dftbp_transport_negfint
 contains
 
   !> Init gDFTB environment and variables
-  subroutine TNegfInt_init(this, transpar, env, greendens, tundos, tempElec)
+  subroutine TNegfInt_init(this, transpar, env, greendens, tundos, tempElec, coords, skCutOff,&
+      & isPeriodic)
 
     !> Instance
     type(TNegfInt), intent(out) :: this
@@ -96,11 +98,21 @@ contains
     !> Electronic temperature
     real(dp), intent(in) :: tempElec
 
+    !> Coordinates of atoms
+    real(dp), intent(in) :: coords(:,:)
+
+    !> Cut-off for electronic interactions
+    real(dp), intent(in) :: skCutOff
+
+    !> Are periodic boundary condition being used
+    logical, intent(in) :: isPeriodic
+
     ! local variables
     real(dp), allocatable :: pot(:), eFermi(:)
-    integer :: i, l, ncont, nldos
+    integer :: i, j, l, ncont, nldos, iAt, jAt
     integer, allocatable :: sizes(:)
     type(lnParams) :: params
+    character(lc) :: errString
 
 #:if WITH_MPI
     call negf_mpi_init(env%mpi%globalComm)
@@ -111,6 +123,26 @@ contains
     else
       ncont = 0
     endif
+
+    do i = 1, ncont
+      do iAt = transpar%contacts(i)%idxrange(1), transpar%contacts(i)%idxrange(2)
+        do j = i+1, ncont
+          do jAt = transpar%contacts(j)%idxrange(1), transpar%contacts(j)%idxrange(2)
+            !write(*,*)i,j,sum((coords(:,iAt)-coords(:,jAt))**2),skCutOff**2
+            if (sum((coords(:,iAt)-coords(:,jAt))**2) <= skCutOff**2) then
+              write(errString,"(A,I0,A,I0,A)") 'Atom ', iAt, ' in contact "'//&
+                  & trim(transpar%contacts(i)%name) // '" and atom ', jAt, ' in contact "'// &
+                  & trim(transpar%contacts(j)%name) // '" interact with each other.'
+              call error(trim(errString))
+            end if
+          end do
+        end do
+      end do
+    end do
+
+    if (hasFullySurroundingContacts(isPeriodic, nCont, transpar)) then
+      call error('Device is fully surrounded by contacts, so should not be a periodic geometry')
+    end if
 
     ! ------------------------------------------------------------------------------
     ! Set defaults and fill up the parameter structure with them
@@ -369,6 +401,43 @@ contains
     this%negf%tDephasingBP = transpar%tDephasingBP
 
   end subroutine TNegfInt_init
+
+
+  !> Tests for device region fully surrounded by contacts but is a periodic geometry
+  function hasFullySurroundingContacts(isPeriodic, nCont, transpar) result (isSurrounded)
+
+    !> Is this a periodic geometry?
+    logical, intent(in) :: isPeriodic
+
+    !> Number of contacts
+    integer, intent(in) :: nCont
+
+    !> Parameters for the transport calculation
+    Type(TTranspar), intent(in) :: transpar
+
+    !> Is the device surrounded
+    logical :: isSurrounded
+
+    real(dp), allocatable :: contVectors(:, :), sigma(:), U(:, :), Vt(:, :)
+    integer :: iCont
+
+    if (.not.isPeriodic .or. nCont < 3) then
+      isSurrounded = .false.
+      return
+    end if
+
+    allocate(sigma(min(nCont,3)))
+    allocate(contVectors(3, nCont))
+    allocate(U(3, 3))
+    allocate(Vt(nCont, nCont))
+    do iCont = 1, nCont
+      contVectors(:, iCont) = transpar%contacts(iCont)%lattice
+    end do
+    call gesvd(contVectors, U, sigma, Vt)
+
+    isSurrounded = all(sigma > transpar%contactLayerTol**2)
+
+  end function hasFullySurroundingContacts
 
 
   !> Initialise dephasing effects

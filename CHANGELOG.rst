@@ -13,6 +13,7 @@ Added
 
 - Born charges from finite difference dipole derivatives
 
+- Spin-orbit coupling for xTB
 
 Fixed
 -----
@@ -20,6 +21,7 @@ Fixed
 - Onsite and +U potentials in real time-propagation, which was broken
   in October 2019 by commit 11abba39b
 
+- Corrected units for electrostatic gate potentials in transport
 
 22.1 (2022-05-25)
 =================
